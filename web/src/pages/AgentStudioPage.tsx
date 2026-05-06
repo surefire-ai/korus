@@ -211,7 +211,10 @@ export function AgentStudioPage() {
 
   return (
     <div>
-      <PageHeader title={t("studio.title")} subtitle={t("studio.subtitle")} />
+      <PageHeader
+        title={agent.displayName}
+        subtitle={`${t("studio.title")} · ${agent.pattern} · ${agent.runtimeEngine}/${agent.runnerClass}`}
+      />
 
       {/* Toolbar */}
       <div className="surface-panel mb-6 flex flex-col gap-4 rounded-lg px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
