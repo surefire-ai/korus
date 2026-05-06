@@ -39,3 +39,33 @@ export async function cleanupWorkspace(id: string) {
     // ignore cleanup errors
   }
 }
+
+export async function seedAgent(data: {
+  id: string;
+  tenantId: string;
+  workspaceId: string;
+  slug: string;
+  displayName: string;
+  status?: string;
+  pattern?: string;
+  runtimeEngine?: string;
+  runnerClass?: string;
+  modelProvider?: string;
+  modelName?: string;
+}) {
+  return api.post("/agents/", {
+    ...data,
+    status: data.status ?? "draft",
+    pattern: data.pattern ?? "react",
+    runtimeEngine: data.runtimeEngine ?? "eino",
+    runnerClass: data.runnerClass ?? "adk",
+  });
+}
+
+export async function cleanupAgent(id: string) {
+  try {
+    await api.delete(`/agents/${id}`);
+  } catch {
+    // ignore cleanup errors
+  }
+}
