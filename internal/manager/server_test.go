@@ -1935,10 +1935,11 @@ func TestManagerDeleteRun(t *testing.T) {
 // --- Syncer integration tests ---
 
 type trackingSyncer struct {
-	synced    []string
-	deleted   []string
-	syncErr   error
-	deleteErr error
+	synced       []string
+	deleted      []string
+	syncedAgents []AgentRecord
+	syncErr      error
+	deleteErr    error
 }
 
 func (s *trackingSyncer) SyncTenant(_ context.Context, r TenantRecord) error {
@@ -1959,6 +1960,7 @@ func (s *trackingSyncer) DeleteWorkspace(_ context.Context, r WorkspaceRecord) e
 }
 func (s *trackingSyncer) SyncAgent(_ context.Context, r AgentRecord) error {
 	s.synced = append(s.synced, "agent:"+r.ID)
+	s.syncedAgents = append(s.syncedAgents, r)
 	return s.syncErr
 }
 func (s *trackingSyncer) DeleteAgent(_ context.Context, r AgentRecord) error {
@@ -2042,6 +2044,83 @@ func TestSyncerCalledOnAgentUpdate(t *testing.T) {
 	}
 	if len(syncer.synced) != 1 || syncer.synced[0] != "agent:a_1" {
 		t.Fatalf("expected syncer to be called with agent:a_1, got %v", syncer.synced)
+	}
+}
+
+func TestSyncerCalledOnAgentUpdateWithWorkflowSpec(t *testing.T) {
+	store := &fakeAgentStore{
+		records: map[string]AgentRecord{
+			"a_workflow": {
+				ID:            "a_workflow",
+				TenantID:      "t_1",
+				WorkspaceID:   "ws_1",
+				Slug:          "workflow-agent",
+				DisplayName:   "Workflow Agent",
+				Pattern:       "react",
+				RuntimeEngine: "eino",
+				RunnerClass:   "adk",
+			},
+		},
+		orderedIDs: []string{"a_workflow"},
+	}
+	syncer := &trackingSyncer{}
+	handler := Server{Stores: Stores{Agents: store}, Syncer: syncer}.Handler()
+	body := `{
+		"pattern":"workflow",
+		"spec":{
+			"pattern":{"type":"workflow"},
+			"graph":{
+				"nodes":[
+					{"name":"start","kind":"start"},
+					{"name":"classify","kind":"model","modelRef":"default"},
+					{"name":"end","kind":"end"}
+				],
+				"edges":[
+					{"from":"start","to":"classify"},
+					{"from":"classify","to":"end","when":"done"}
+				]
+			}
+		}
+	}`
+	request := httptest.NewRequest(http.MethodPatch, "/api/v1/agents/a_workflow", strings.NewReader(body))
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+
+	var resp AgentResponse
+	if err := json.NewDecoder(recorder.Body).Decode(&resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+	if resp.Pattern != "workflow" {
+		t.Fatalf("response pattern = %q; want workflow", resp.Pattern)
+	}
+	if resp.Spec == nil || resp.Spec.Pattern == nil || resp.Spec.Pattern.Type != "workflow" {
+		t.Fatalf("response spec.pattern = %#v; want workflow", resp.Spec)
+	}
+	if resp.Spec.Graph == nil || len(resp.Spec.Graph.Nodes) != 3 || len(resp.Spec.Graph.Edges) != 2 {
+		t.Fatalf("response graph = %#v; want 3 nodes and 2 edges", resp.Spec.Graph)
+	}
+
+	if len(syncer.syncedAgents) != 1 {
+		t.Fatalf("expected one synced agent record, got %d", len(syncer.syncedAgents))
+	}
+	synced := syncer.syncedAgents[0]
+	if synced.Pattern != "workflow" {
+		t.Fatalf("synced pattern = %q; want workflow", synced.Pattern)
+	}
+	if synced.Spec == nil || synced.Spec.Pattern == nil || synced.Spec.Pattern.Type != "workflow" {
+		t.Fatalf("synced spec.pattern = %#v; want workflow", synced.Spec)
+	}
+	if synced.Spec.Graph == nil || len(synced.Spec.Graph.Nodes) != 3 || len(synced.Spec.Graph.Edges) != 2 {
+		t.Fatalf("synced graph = %#v; want 3 nodes and 2 edges", synced.Spec.Graph)
+	}
+	if synced.Spec.Graph.Nodes[1].Name != "classify" || synced.Spec.Graph.Nodes[1].ModelRef != "default" {
+		t.Fatalf("synced model node = %#v; want classify/default", synced.Spec.Graph.Nodes[1])
+	}
+	if synced.Spec.Graph.Edges[1].When != "done" {
+		t.Fatalf("synced edge condition = %q; want done", synced.Spec.Graph.Edges[1].When)
 	}
 }
 

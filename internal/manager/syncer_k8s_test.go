@@ -220,6 +220,81 @@ func TestK8sCRDSyncerDeleteAgentUsesWorkspaceNamespace(t *testing.T) {
 	}
 }
 
+func TestK8sCRDSyncerSyncAgentPreservesWorkflowSpecInWorkspaceNamespace(t *testing.T) {
+	ctx := context.Background()
+	scheme := runtime.NewScheme()
+	if err := apiv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatalf("add scheme: %v", err)
+	}
+
+	c := fake.NewClientBuilder().WithScheme(scheme).Build()
+	stores := Stores{
+		Workspaces: &fakeWorkspaceStore{
+			records: map[string]WorkspaceRecord{
+				"ws_1": {ID: "ws_1", KubernetesNamespace: "demo-ns"},
+			},
+			orderedIDs: []string{"ws_1"},
+		},
+	}
+	syncer := NewK8sCRDSyncerWithStores(c, scheme, &stores)
+
+	err := syncer.SyncAgent(ctx, AgentRecord{
+		ID:            "agent-workflow",
+		TenantID:      "t_1",
+		WorkspaceID:   "ws_1",
+		DisplayName:   "Workflow Agent",
+		Pattern:       "workflow",
+		RuntimeEngine: "eino",
+		RunnerClass:   "adk",
+		Spec: &AgentSpecData{
+			Pattern: &PatternConfig{Type: "workflow"},
+			Graph: &GraphConfig{
+				Nodes: []GraphNode{
+					{Name: "start", Kind: "start"},
+					{Name: "classify", Kind: "model", ModelRef: "default"},
+					{Name: "end", Kind: "end"},
+				},
+				Edges: []GraphEdge{
+					{From: "start", To: "classify"},
+					{From: "classify", To: "end", When: "done"},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("sync agent: %v", err)
+	}
+
+	var agent apiv1alpha1.Agent
+	if err := c.Get(ctx, types.NamespacedName{Name: "agent-workflow", Namespace: "demo-ns"}, &agent); err != nil {
+		t.Fatalf("get synced agent: %v", err)
+	}
+	if agent.Spec.WorkspaceRef == nil || agent.Spec.WorkspaceRef.Name != "ws_1" {
+		t.Fatalf("workspaceRef = %#v; want ws_1", agent.Spec.WorkspaceRef)
+	}
+	if agent.Spec.Pattern == nil || agent.Spec.Pattern.Type != "workflow" {
+		t.Fatalf("pattern = %#v; want workflow", agent.Spec.Pattern)
+	}
+	if agent.Spec.Runtime.Engine != "eino" || agent.Spec.Runtime.RunnerClass != "adk" {
+		t.Fatalf("runtime = %#v; want eino/adk", agent.Spec.Runtime)
+	}
+	if len(agent.Spec.Graph.Nodes) != 3 || len(agent.Spec.Graph.Edges) != 2 {
+		t.Fatalf("graph = %#v; want 3 nodes and 2 edges", agent.Spec.Graph)
+	}
+	if agent.Spec.Graph.Nodes[1].Name != "classify" || agent.Spec.Graph.Nodes[1].ModelRef != "default" {
+		t.Fatalf("model node = %#v; want classify/default", agent.Spec.Graph.Nodes[1])
+	}
+	if agent.Spec.Graph.Edges[1].When != "done" {
+		t.Fatalf("edge condition = %q; want done", agent.Spec.Graph.Edges[1].When)
+	}
+
+	var defaultAgent apiv1alpha1.Agent
+	err = c.Get(ctx, types.NamespacedName{Name: "agent-workflow", Namespace: defaultNamespace}, &defaultAgent)
+	if !apierrors.IsNotFound(err) {
+		t.Fatalf("expected no agent in default namespace, got err=%v object=%#v", err, defaultAgent)
+	}
+}
+
 func assertFreeformString(t *testing.T, values map[string]apiextensionsv1.JSON, key, want string) {
 	t.Helper()
 	value, ok := values[key]
