@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/surefire-ai/korus/internal/contract"
@@ -535,5 +536,45 @@ func TestGraphSurvivesJSONRoundTrip(t *testing.T) {
 	}
 	if runnable == nil {
 		t.Fatal("expected non-nil runnable from round-tripped artifact")
+	}
+}
+
+func TestBuildGraphRejectsUnsupportedNodeKind(t *testing.T) {
+	t.Setenv("MODEL_PLANNER_API_KEY", "test-secret")
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"id":"chatcmpl-1","choices":[{"message":{"role":"assistant","content":"ok"}}]}`))
+	}))
+	defer server.Close()
+
+	artifact := contract.CompiledArtifact{
+		Runtime: contract.ArtifactRuntime{Engine: "eino", RunnerClass: "adk"},
+		Runner: contract.ArtifactRunner{
+			Kind: "EinoADKRunner",
+			Graph: map[string]interface{}{
+				"nodes": []interface{}{
+					map[string]interface{}{"name": "step1", "kind": "bogus"},
+				},
+				"edges": []interface{}{
+					map[string]interface{}{"from": "START", "to": "step1"},
+					map[string]interface{}{"from": "step1", "to": "END"},
+				},
+			},
+			Models: map[string]contract.ModelConfig{
+				"planner": {Provider: "openai", Model: "gpt-4.1", BaseURL: server.URL},
+			},
+		},
+	}
+
+	_, err := buildGraph(context.Background(), artifact, contract.WorkerRuntimeInfo{
+		Models: map[string]contract.WorkerModelRuntime{
+			"planner": {Provider: "openai", Model: "gpt-4.1", BaseURL: server.URL, APIKeyEnv: "MODEL_PLANNER_API_KEY"},
+		},
+	}, EinoOpenAIInvoker{}, nil, nil)
+	if err == nil {
+		t.Fatal("expected error for unsupported node kind")
+	}
+	if !strings.Contains(err.Error(), "unsupported graph node kind") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }

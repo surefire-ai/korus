@@ -125,7 +125,8 @@ func buildNodeLambda(
 	case "agent":
 		return buildAgentLambda(node, artifact, runtimeInfo)
 	default:
-		return nil, nil
+		nodeName, _ := node["name"].(string)
+		return nil, fmt.Errorf("unsupported graph node kind %q for node %q", kind, nodeName)
 	}
 }
 

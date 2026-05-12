@@ -1080,3 +1080,233 @@ func TestCompileAgentExpandsReflectionPattern(t *testing.T) {
 		t.Fatalf("expected runner pattern type reflection, got %#v", runner.Pattern)
 	}
 }
+
+// ── Workflow graph normalization and validation tests ───────────────
+
+func workflowAgent(graph apiv1alpha1.AgentGraphSpec) apiv1alpha1.Agent {
+	agent := testAgent()
+	agent.Spec.Graph = graph
+	agent.Spec.Pattern = &apiv1alpha1.AgentPatternSpec{Type: "workflow"}
+	agent.Spec.SkillRefs = nil
+	agent.Spec.KnowledgeRefs = nil
+	agent.Spec.ToolRefs = nil
+	agent.Spec.MCPRefs = nil
+	agent.Spec.PolicyRef = ""
+	agent.Spec.SubAgentRefs = nil
+	return agent
+}
+
+func minimalRefs() ReferenceIndex {
+	return ReferenceIndex{
+		Prompts: set("ehs-hazard-identification-system"),
+		PromptTemplates: map[string]apiv1alpha1.PromptTemplateSpec{
+			"ehs-hazard-identification-system": promptTemplateSpec(),
+		},
+	}
+}
+
+func TestCompileAgentNormalizesWorkflowGraphNodeKinds(t *testing.T) {
+	agent := workflowAgent(apiv1alpha1.AgentGraphSpec{
+		Nodes: []apiv1alpha1.AgentGraphNode{
+			{Name: "step1", Kind: "model", ModelRef: "planner"},
+			{Name: "step2", Kind: "knowledge", KnowledgeRef: "regulations"},
+			{Name: "step3", Kind: "custom", Implementation: "app.skills.ehs:score_risk_by_matrix"},
+		},
+		Edges: []apiv1alpha1.AgentGraphEdge{
+			{From: "START", To: "step1"},
+			{From: "step1", To: "step2"},
+			{From: "step2", To: "step3"},
+			{From: "step3", To: "END"},
+		},
+	})
+
+	result, err := CompileAgent(agent, minimalRefs())
+	if err != nil {
+		t.Fatalf("CompileAgent returned error: %v", err)
+	}
+
+	runner := runnerArtifact(t, result.Artifact["runner"])
+	nodes, _ := runner.Graph["nodes"].([]interface{})
+	if len(nodes) != 3 {
+		t.Fatalf("expected 3 nodes, got %d", len(nodes))
+	}
+
+	kindMap := map[string]string{}
+	for _, raw := range nodes {
+		n := raw.(map[string]interface{})
+		kindMap[n["name"].(string)] = n["kind"].(string)
+	}
+	if kindMap["step1"] != "llm" {
+		t.Fatalf("expected step1 kind llm, got %q", kindMap["step1"])
+	}
+	if kindMap["step2"] != "retrieval" {
+		t.Fatalf("expected step2 kind retrieval, got %q", kindMap["step2"])
+	}
+	if kindMap["step3"] != "function" {
+		t.Fatalf("expected step3 kind function, got %q", kindMap["step3"])
+	}
+}
+
+func TestCompileAgentWorkflowStartEndNodesBecomeEdges(t *testing.T) {
+	agent := workflowAgent(apiv1alpha1.AgentGraphSpec{
+		Nodes: []apiv1alpha1.AgentGraphNode{
+			{Name: "begin", Kind: "start"},
+			{Name: "process", Kind: "model", ModelRef: "planner"},
+			{Name: "finish", Kind: "end"},
+		},
+		Edges: []apiv1alpha1.AgentGraphEdge{
+			{From: "begin", To: "process"},
+			{From: "process", To: "finish"},
+		},
+	})
+
+	result, err := CompileAgent(agent, minimalRefs())
+	if err != nil {
+		t.Fatalf("CompileAgent returned error: %v", err)
+	}
+
+	runner := runnerArtifact(t, result.Artifact["runner"])
+	nodes, _ := runner.Graph["nodes"].([]interface{})
+	if len(nodes) != 1 {
+		t.Fatalf("expected 1 node (start/end removed), got %d", len(nodes))
+	}
+	n := nodes[0].(map[string]interface{})
+	if n["name"] != "process" {
+		t.Fatalf("expected remaining node 'process', got %q", n["name"])
+	}
+
+	edges, _ := runner.Graph["edges"].([]interface{})
+	if len(edges) != 2 {
+		t.Fatalf("expected 2 edges, got %d", len(edges))
+	}
+	edgeSet := map[string]bool{}
+	for _, raw := range edges {
+		e := raw.(map[string]interface{})
+		edgeSet[e["from"].(string)+"->"+e["to"].(string)] = true
+	}
+	if !edgeSet["START->process"] {
+		t.Fatal("expected edge START->process")
+	}
+	if !edgeSet["process->END"] {
+		t.Fatal("expected edge process->END")
+	}
+}
+
+func TestCompileAgentRejectsWorkflowWithUnsupportedNodeKind(t *testing.T) {
+	agent := workflowAgent(apiv1alpha1.AgentGraphSpec{
+		Nodes: []apiv1alpha1.AgentGraphNode{
+			{Name: "step1", Kind: "bogus"},
+		},
+		Edges: []apiv1alpha1.AgentGraphEdge{
+			{From: "START", To: "step1"},
+			{From: "step1", To: "END"},
+		},
+	})
+
+	_, err := CompileAgent(agent, minimalRefs())
+	if err == nil {
+		t.Fatal("expected unsupported kind error")
+	}
+	if !strings.Contains(err.Error(), "unsupported kind") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCompileAgentRejectsWorkflowWithOrphanNodes(t *testing.T) {
+	agent := workflowAgent(apiv1alpha1.AgentGraphSpec{
+		Nodes: []apiv1alpha1.AgentGraphNode{
+			{Name: "step1", Kind: "llm", ModelRef: "planner"},
+			{Name: "orphan", Kind: "llm", ModelRef: "planner"},
+		},
+		Edges: []apiv1alpha1.AgentGraphEdge{
+			{From: "START", To: "step1"},
+			{From: "step1", To: "END"},
+		},
+	})
+
+	_, err := CompileAgent(agent, minimalRefs())
+	if err == nil {
+		t.Fatal("expected unreachable node error")
+	}
+	if !strings.Contains(err.Error(), "unreachable") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCompileAgentRejectsWorkflowWithMissingEdgeEndpoints(t *testing.T) {
+	agent := workflowAgent(apiv1alpha1.AgentGraphSpec{
+		Nodes: []apiv1alpha1.AgentGraphNode{
+			{Name: "step1", Kind: "llm", ModelRef: "planner"},
+		},
+		Edges: []apiv1alpha1.AgentGraphEdge{
+			{From: "START", To: "step1"},
+			{From: "step1", To: "nonexistent"},
+		},
+	})
+
+	_, err := CompileAgent(agent, minimalRefs())
+	if err == nil {
+		t.Fatal("expected unknown node error")
+	}
+	if !strings.Contains(err.Error(), "unknown node") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCompileAgentRejectsWorkflowLLMNodeWithoutModelRef(t *testing.T) {
+	agent := workflowAgent(apiv1alpha1.AgentGraphSpec{
+		Nodes: []apiv1alpha1.AgentGraphNode{
+			{Name: "step1", Kind: "llm"},
+		},
+		Edges: []apiv1alpha1.AgentGraphEdge{
+			{From: "START", To: "step1"},
+			{From: "step1", To: "END"},
+		},
+	})
+
+	_, err := CompileAgent(agent, minimalRefs())
+	if err == nil {
+		t.Fatal("expected missing modelRef error")
+	}
+	if !strings.Contains(err.Error(), "requires modelRef") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCompileAgentRejectsWorkflowWithNoStartEdge(t *testing.T) {
+	agent := workflowAgent(apiv1alpha1.AgentGraphSpec{
+		Nodes: []apiv1alpha1.AgentGraphNode{
+			{Name: "step1", Kind: "llm", ModelRef: "planner"},
+		},
+		Edges: []apiv1alpha1.AgentGraphEdge{
+			{From: "step1", To: "END"},
+		},
+	})
+
+	_, err := CompileAgent(agent, minimalRefs())
+	if err == nil {
+		t.Fatal("expected no START edge error")
+	}
+	if !strings.Contains(err.Error(), "no edge from START") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCompileAgentRejectsWorkflowWithNoEndEdge(t *testing.T) {
+	agent := workflowAgent(apiv1alpha1.AgentGraphSpec{
+		Nodes: []apiv1alpha1.AgentGraphNode{
+			{Name: "step1", Kind: "llm", ModelRef: "planner"},
+		},
+		Edges: []apiv1alpha1.AgentGraphEdge{
+			{From: "START", To: "step1"},
+		},
+	})
+
+	_, err := CompileAgent(agent, minimalRefs())
+	if err == nil {
+		t.Fatal("expected no END edge error")
+	}
+	if !strings.Contains(err.Error(), "no edge to END") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

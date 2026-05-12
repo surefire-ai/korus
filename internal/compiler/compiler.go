@@ -36,6 +36,17 @@ type Result struct {
 }
 
 func CompileAgent(agent apiv1alpha1.Agent, refs ReferenceIndex) (Result, error) {
+	// Normalize workflow graph before validation so that frontend kinds
+	// (model, knowledge, custom, start, end) are translated to backend
+	// kinds (llm, retrieval, function) and terminal nodes are rewritten
+	// into START/END edges. This must happen before validatePattern so
+	// the normalized graph is what gets validated and compiled.
+	if agent.Spec.Pattern != nil && strings.TrimSpace(agent.Spec.Pattern.Type) == "workflow" {
+		if err := normalizeWorkflowGraph(&agent.Spec.Graph); err != nil {
+			return Result{}, err
+		}
+	}
+
 	if err := validatePattern(agent.Spec); err != nil {
 		return Result{}, err
 	}
@@ -657,11 +668,195 @@ func validateRouterPattern(pattern *apiv1alpha1.AgentPatternSpec) error {
 	return nil
 }
 
+// validWorkflowNodeKinds lists the backend node kinds accepted after normalization.
+var validWorkflowNodeKinds = map[string]bool{
+	"llm":       true,
+	"tool":      true,
+	"retrieval": true,
+	"function":  true,
+	"agent":     true,
+}
+
+// workflowKindNormalization maps frontend Studio node kinds to backend kinds.
+var workflowKindNormalization = map[string]string{
+	"model":     "llm",
+	"knowledge": "retrieval",
+	"custom":    "function",
+	"tool":      "tool",
+	"agent":     "agent",
+}
+
 func validateWorkflowPattern(spec apiv1alpha1.AgentSpec) error {
-	// Workflow pattern requires an explicit graph definition.
 	if len(spec.Graph.Nodes) == 0 {
 		return fmt.Errorf("workflow pattern requires at least one node in spec.graph")
 	}
+	// The graph is already normalized by CompileAgent before this runs.
+	// We do a lightweight structural check here on the (already normalized)
+	// copy. normalizeWorkflowGraph is idempotent, so calling it again on
+	// an already-normalized graph is safe — start/end nodes are already
+	// gone and kinds are already backend kinds.
+	graph := spec.Graph
+	return validateWorkflowGraphStruct(&graph)
+}
+
+// normalizeWorkflowGraph normalizes frontend node kinds to backend kinds,
+// rewrites start/end terminal nodes into START/END edge endpoints. It
+// mutates graph in-place and is idempotent.
+func normalizeWorkflowGraph(graph *apiv1alpha1.AgentGraphSpec) error {
+	// Step 1: Identify terminal nodes and build lookup.
+	startNodes := map[string]bool{}
+	endNodes := map[string]bool{}
+	for _, node := range graph.Nodes {
+		switch node.Kind {
+		case "start":
+			startNodes[node.Name] = true
+		case "end":
+			endNodes[node.Name] = true
+		}
+	}
+
+	// Step 2: Rewrite edges that connect through start/end nodes.
+	newEdges := make([]apiv1alpha1.AgentGraphEdge, 0, len(graph.Edges))
+	for _, edge := range graph.Edges {
+		from := edge.From
+		to := edge.To
+		if startNodes[from] {
+			from = "START"
+		}
+		if endNodes[to] {
+			to = "END"
+		}
+		// Skip edges that became self-loops (start→end with no real nodes).
+		if from == "START" && to == "END" {
+			newEdges = append(newEdges, apiv1alpha1.AgentGraphEdge{From: from, To: to, When: edge.When})
+			continue
+		}
+		newEdges = append(newEdges, apiv1alpha1.AgentGraphEdge{From: from, To: to, When: edge.When})
+	}
+	graph.Edges = newEdges
+
+	// Step 3: Remove terminal nodes from the node list.
+	filtered := make([]apiv1alpha1.AgentGraphNode, 0, len(graph.Nodes))
+	for _, node := range graph.Nodes {
+		if node.Kind == "start" || node.Kind == "end" {
+			continue
+		}
+		filtered = append(filtered, node)
+	}
+	graph.Nodes = filtered
+
+	// Step 4: Normalize remaining node kinds.
+	for i := range graph.Nodes {
+		kind := graph.Nodes[i].Kind
+		if normalized, ok := workflowKindNormalization[kind]; ok {
+			graph.Nodes[i].Kind = normalized
+		}
+	}
+
+	return nil
+}
+
+// validateWorkflowGraphStruct checks the structural integrity of a workflow
+// graph. It expects the graph to already be normalized (kinds translated,
+// start/end nodes removed). It validates node kinds, required fields, edge
+// references, and graph reachability.
+func validateWorkflowGraphStruct(graph *apiv1alpha1.AgentGraphSpec) error {
+
+	if len(graph.Nodes) == 0 {
+		return fmt.Errorf("workflow graph has no nodes after removing start/end terminals")
+	}
+
+	// Build node name set and validate kinds.
+	nodeNames := make(map[string]bool, len(graph.Nodes))
+	for _, node := range graph.Nodes {
+		name := strings.TrimSpace(node.Name)
+		if name == "" {
+			return fmt.Errorf("workflow graph node has empty name")
+		}
+		if nodeNames[name] {
+			return fmt.Errorf("duplicate workflow graph node %q", name)
+		}
+		nodeNames[name] = true
+
+		if !validWorkflowNodeKinds[node.Kind] {
+			return fmt.Errorf("workflow graph node %q has unsupported kind %q", name, node.Kind)
+		}
+
+		// Validate required fields per kind.
+		switch node.Kind {
+		case "llm":
+			if strings.TrimSpace(node.ModelRef) == "" {
+				return fmt.Errorf("workflow graph llm node %q requires modelRef", name)
+			}
+		case "tool":
+			if strings.TrimSpace(node.ToolRef) == "" {
+				return fmt.Errorf("workflow graph tool node %q requires toolRef", name)
+			}
+		case "retrieval":
+			if strings.TrimSpace(node.KnowledgeRef) == "" {
+				return fmt.Errorf("workflow graph retrieval node %q requires knowledgeRef", name)
+			}
+		case "agent":
+			if strings.TrimSpace(node.AgentRef) == "" {
+				return fmt.Errorf("workflow graph agent node %q requires agentRef", name)
+			}
+		}
+	}
+
+	// Validate edge references.
+	terminalNames := map[string]bool{"START": true, "END": true}
+	hasStartEdge := false
+	hasEndEdge := false
+	for _, edge := range graph.Edges {
+		from := strings.TrimSpace(edge.From)
+		to := strings.TrimSpace(edge.To)
+		if from == "" || to == "" {
+			return fmt.Errorf("workflow graph edge has empty from or to")
+		}
+		if !terminalNames[from] && !nodeNames[from] {
+			return fmt.Errorf("workflow graph edge references unknown node %q", from)
+		}
+		if !terminalNames[to] && !nodeNames[to] {
+			return fmt.Errorf("workflow graph edge references unknown node %q", to)
+		}
+		if from == "START" {
+			hasStartEdge = true
+		}
+		if to == "END" {
+			hasEndEdge = true
+		}
+	}
+
+	if !hasStartEdge {
+		return fmt.Errorf("workflow graph has no edge from START; add a start node or an explicit START edge")
+	}
+	if !hasEndEdge {
+		return fmt.Errorf("workflow graph has no edge to END; add an end node or an explicit END edge")
+	}
+
+	// Check reachability from START.
+	reachable := make(map[string]bool)
+	queue := []string{"START"}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		if reachable[current] {
+			continue
+		}
+		reachable[current] = true
+		for _, edge := range graph.Edges {
+			if strings.TrimSpace(edge.From) == current {
+				queue = append(queue, strings.TrimSpace(edge.To))
+			}
+		}
+	}
+
+	for name := range nodeNames {
+		if !reachable[name] {
+			return fmt.Errorf("workflow graph node %q is unreachable from START", name)
+		}
+	}
+
 	return nil
 }
 
