@@ -22,6 +22,7 @@ import type { GraphConfig, GraphNode, GraphEdge } from "@/types/api";
 import { WorkflowNode, type WorkflowNodeData } from "./WorkflowNode";
 import { NodePalette } from "./NodePalette";
 import { NodeConfigPanel } from "./NodeConfigPanel";
+import { validateGraph } from "./workflowValidation";
 import { useTranslation } from "react-i18next";
 
 interface WorkflowCanvasProps {
@@ -112,43 +113,6 @@ function getLayoutedElements(nodes: Node<WorkflowNodeData>[], edges: Edge[], dir
   });
 
   return { nodes: layoutedNodes, edges };
-}
-
-// ─── Validation ───────────────────────────────────────────────────
-
-function validateGraph(nodes: Node<WorkflowNodeData>[], edges: Edge[]): string[] {
-  const errors: string[] = [];
-  const names = nodes.map((n) => n.data.label).filter(Boolean);
-  const nameSet = new Set<string>();
-
-  // Duplicate names
-  for (const name of names) {
-    if (nameSet.has(name)) {
-      errors.push(`Duplicate node name: "${name}"`);
-    }
-    nameSet.add(name);
-  }
-
-  // Start/End check
-  const hasStart = nodes.some((n) => n.data.kind === "start");
-  const hasEnd = nodes.some((n) => n.data.kind === "end");
-  if (!hasStart) errors.push("Workflow should have a Start node");
-  if (!hasEnd) errors.push("Workflow should have an End node");
-
-  // Edge references
-  const nodeIds = new Set(nodes.map((n) => n.id));
-  for (const e of edges) {
-    if (!nodeIds.has(e.source)) errors.push(`Edge references missing source: "${e.source}"`);
-    if (!nodeIds.has(e.target)) errors.push(`Edge references missing target: "${e.target}"`);
-  }
-
-  // Empty labels
-  const unlabeled = nodes.filter((n) => !n.data.label && n.data.kind !== "start" && n.data.kind !== "end");
-  if (unlabeled.length > 0) {
-    errors.push(`${unlabeled.length} node(s) have no name`);
-  }
-
-  return errors;
 }
 
 // ─── Main Component ───────────────────────────────────────────────

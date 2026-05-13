@@ -28,6 +28,10 @@ function FieldLabel({ label }: { label: string }) {
   return <label className="mb-1.5 block text-xs font-medium text-zinc-600">{label}</label>;
 }
 
+function FieldWarning({ message }: { message: string }) {
+  return <p className="mt-1 text-[10px] text-amber-600 font-medium">⚠ {message}</p>;
+}
+
 export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: NodeConfigPanelProps) {
   const { t } = useTranslation();
   const Icon = kindIcons[data.kind] ?? Code2;
@@ -86,6 +90,7 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: N
           <div>
             <FieldLabel label={t("studio.workflow.modelRef")} />
             <Input value={data.modelRef ?? ""} onChange={(e) => onUpdate({ modelRef: e.target.value })} placeholder={t("studio.workflow.placeholderModelRef")} />
+            {!data.modelRef?.trim() && <FieldWarning message={t("studio.workflow.warningModelRef", "Model reference is required")} />}
             <p className="mt-1 text-[10px] text-zinc-400">{t("studio.workflow.modelRefHint")}</p>
           </div>
         )}
@@ -94,6 +99,7 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: N
           <div>
             <FieldLabel label={t("studio.workflow.toolRef")} />
             <Input value={data.toolRef ?? ""} onChange={(e) => onUpdate({ toolRef: e.target.value })} placeholder={t("studio.workflow.placeholderToolRef")} />
+            {!data.toolRef?.trim() && <FieldWarning message={t("studio.workflow.warningToolRef", "Tool reference is required")} />}
             <p className="mt-1 text-[10px] text-zinc-400">{t("studio.workflow.toolRefHint")}</p>
           </div>
         )}
@@ -102,6 +108,7 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: N
           <div>
             <FieldLabel label={t("studio.workflow.knowledgeRef")} />
             <Input value={data.knowledgeRef ?? ""} onChange={(e) => onUpdate({ knowledgeRef: e.target.value })} placeholder={t("studio.workflow.placeholderKnowledgeRef")} />
+            {!data.knowledgeRef?.trim() && <FieldWarning message={t("studio.workflow.warningKnowledgeRef", "Knowledge reference is required")} />}
             <p className="mt-1 text-[10px] text-zinc-400">{t("studio.workflow.knowledgeRefHint")}</p>
           </div>
         )}
@@ -110,6 +117,7 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: N
           <div>
             <FieldLabel label={t("studio.workflow.agentRef")} />
             <Input value={data.agentRef ?? ""} onChange={(e) => onUpdate({ agentRef: e.target.value })} placeholder={t("studio.workflow.placeholderAgentRef")} />
+            {!data.agentRef?.trim() && <FieldWarning message={t("studio.workflow.warningAgentRef", "Agent reference is required")} />}
             <p className="mt-1 text-[10px] text-zinc-400">{t("studio.workflow.agentRefHint")}</p>
           </div>
         )}
