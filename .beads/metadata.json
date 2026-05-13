@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "korus",
+  "project_id": "11f28069-a37b-4d51-9550-f7b7448e68dc"
+}
