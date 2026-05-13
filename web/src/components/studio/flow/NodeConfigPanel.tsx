@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { X, Cpu, Wrench, Users, BookOpen, Code2, Play, Flag, Trash2 } from "lucide-react";
 import type { WorkflowNodeData } from "./WorkflowNode";
+import type { WorkflowBindings } from "@/types/api";
 import { Input } from "@/components/shared/Input";
+import { Select } from "@/components/shared/Select";
 import { Button } from "@/components/shared/Button";
 
 interface NodeConfigPanelProps {
@@ -10,6 +12,7 @@ interface NodeConfigPanelProps {
   onUpdate: (updates: Partial<WorkflowNodeData>) => void;
   onDelete: () => void;
   onClose: () => void;
+  bindings?: WorkflowBindings;
 }
 
 const kindIcons: Record<string, React.ElementType> = {
@@ -32,7 +35,16 @@ function FieldWarning({ message }: { message: string }) {
   return <p className="mt-1 text-[10px] text-amber-600 font-medium">⚠ {message}</p>;
 }
 
-export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: NodeConfigPanelProps) {
+/** Build select options from declared names, preserving the current value even if not in list. */
+function buildRefOptions(names: string[], currentValue?: string): { value: string; label: string }[] {
+  const options = names.map((n) => ({ value: n, label: n }));
+  if (currentValue && currentValue.trim() && !names.includes(currentValue)) {
+    options.unshift({ value: currentValue, label: currentValue });
+  }
+  return options;
+}
+
+export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose, bindings }: NodeConfigPanelProps) {
   const { t } = useTranslation();
   const Icon = kindIcons[data.kind] ?? Code2;
   const color = kindColors[data.kind] ?? "text-zinc-600";
@@ -89,7 +101,16 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: N
         {!isTerminal && data.kind === "model" && (
           <div>
             <FieldLabel label={t("studio.workflow.modelRef")} />
-            <Input value={data.modelRef ?? ""} onChange={(e) => onUpdate({ modelRef: e.target.value })} placeholder={t("studio.workflow.placeholderModelRef")} />
+            {bindings && bindings.modelNames.length > 0 ? (
+              <Select
+                value={data.modelRef ?? ""}
+                onChange={(e) => onUpdate({ modelRef: e.target.value })}
+                options={buildRefOptions(bindings.modelNames, data.modelRef)}
+                placeholder={t("studio.workflow.placeholderModelRef")}
+              />
+            ) : (
+              <Input value={data.modelRef ?? ""} onChange={(e) => onUpdate({ modelRef: e.target.value })} placeholder={t("studio.workflow.placeholderModelRef")} />
+            )}
             {!data.modelRef?.trim() && <FieldWarning message={t("studio.workflow.warningModelRef", "Model reference is required")} />}
             <p className="mt-1 text-[10px] text-zinc-400">{t("studio.workflow.modelRefHint")}</p>
           </div>
@@ -98,7 +119,16 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: N
         {!isTerminal && data.kind === "tool" && (
           <div>
             <FieldLabel label={t("studio.workflow.toolRef")} />
-            <Input value={data.toolRef ?? ""} onChange={(e) => onUpdate({ toolRef: e.target.value })} placeholder={t("studio.workflow.placeholderToolRef")} />
+            {bindings && bindings.toolNames.length > 0 ? (
+              <Select
+                value={data.toolRef ?? ""}
+                onChange={(e) => onUpdate({ toolRef: e.target.value })}
+                options={buildRefOptions(bindings.toolNames, data.toolRef)}
+                placeholder={t("studio.workflow.placeholderToolRef")}
+              />
+            ) : (
+              <Input value={data.toolRef ?? ""} onChange={(e) => onUpdate({ toolRef: e.target.value })} placeholder={t("studio.workflow.placeholderToolRef")} />
+            )}
             {!data.toolRef?.trim() && <FieldWarning message={t("studio.workflow.warningToolRef", "Tool reference is required")} />}
             <p className="mt-1 text-[10px] text-zinc-400">{t("studio.workflow.toolRefHint")}</p>
           </div>
@@ -107,7 +137,16 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: N
         {!isTerminal && data.kind === "knowledge" && (
           <div>
             <FieldLabel label={t("studio.workflow.knowledgeRef")} />
-            <Input value={data.knowledgeRef ?? ""} onChange={(e) => onUpdate({ knowledgeRef: e.target.value })} placeholder={t("studio.workflow.placeholderKnowledgeRef")} />
+            {bindings && bindings.knowledgeNames.length > 0 ? (
+              <Select
+                value={data.knowledgeRef ?? ""}
+                onChange={(e) => onUpdate({ knowledgeRef: e.target.value })}
+                options={buildRefOptions(bindings.knowledgeNames, data.knowledgeRef)}
+                placeholder={t("studio.workflow.placeholderKnowledgeRef")}
+              />
+            ) : (
+              <Input value={data.knowledgeRef ?? ""} onChange={(e) => onUpdate({ knowledgeRef: e.target.value })} placeholder={t("studio.workflow.placeholderKnowledgeRef")} />
+            )}
             {!data.knowledgeRef?.trim() && <FieldWarning message={t("studio.workflow.warningKnowledgeRef", "Knowledge reference is required")} />}
             <p className="mt-1 text-[10px] text-zinc-400">{t("studio.workflow.knowledgeRefHint")}</p>
           </div>
@@ -116,7 +155,16 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose }: N
         {!isTerminal && data.kind === "agent" && (
           <div>
             <FieldLabel label={t("studio.workflow.agentRef")} />
-            <Input value={data.agentRef ?? ""} onChange={(e) => onUpdate({ agentRef: e.target.value })} placeholder={t("studio.workflow.placeholderAgentRef")} />
+            {bindings && bindings.agentNames.length > 0 ? (
+              <Select
+                value={data.agentRef ?? ""}
+                onChange={(e) => onUpdate({ agentRef: e.target.value })}
+                options={buildRefOptions(bindings.agentNames, data.agentRef)}
+                placeholder={t("studio.workflow.placeholderAgentRef")}
+              />
+            ) : (
+              <Input value={data.agentRef ?? ""} onChange={(e) => onUpdate({ agentRef: e.target.value })} placeholder={t("studio.workflow.placeholderAgentRef")} />
+            )}
             {!data.agentRef?.trim() && <FieldWarning message={t("studio.workflow.warningAgentRef", "Agent reference is required")} />}
             <p className="mt-1 text-[10px] text-zinc-400">{t("studio.workflow.agentRefHint")}</p>
           </div>

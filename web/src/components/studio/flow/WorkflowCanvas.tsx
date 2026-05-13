@@ -18,7 +18,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import dagre from "dagre";
-import type { GraphConfig, GraphNode, GraphEdge } from "@/types/api";
+import type { GraphConfig, GraphNode, GraphEdge, WorkflowBindings } from "@/types/api";
 import { WorkflowNode, type WorkflowNodeData } from "./WorkflowNode";
 import { NodePalette } from "./NodePalette";
 import { NodeConfigPanel } from "./NodeConfigPanel";
@@ -30,6 +30,8 @@ interface WorkflowCanvasProps {
   onChange: (graph: GraphConfig) => void;
   /** Called by parent to trigger validation before save */
   onValidateRef?: React.MutableRefObject<(() => string[]) | null>;
+  /** Available bindings from agent spec for select dropdowns */
+  bindings?: WorkflowBindings;
 }
 
 // ─── Conversion ───────────────────────────────────────────────────
@@ -117,7 +119,7 @@ function getLayoutedElements(nodes: Node<WorkflowNodeData>[], edges: Edge[], dir
 
 // ─── Main Component ───────────────────────────────────────────────
 
-export function WorkflowCanvas({ graph, onChange, onValidateRef }: WorkflowCanvasProps) {
+export function WorkflowCanvas({ graph, onChange, onValidateRef, bindings }: WorkflowCanvasProps) {
   const { t } = useTranslation();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<WorkflowNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -584,6 +586,7 @@ export function WorkflowCanvas({ graph, onChange, onValidateRef }: WorkflowCanva
           onUpdate={handleNodeUpdate}
           onDelete={() => deleteNode(selectedNodeId!)}
           onClose={() => setSelectedNodeId(null)}
+          bindings={bindings}
         />
       )}
     </div>

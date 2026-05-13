@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -11,6 +11,7 @@ import type {
   SkillBinding,
   SubAgentBinding,
   GraphConfig,
+  WorkflowBindings,
 } from "@/types/api";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/shared/Button";
@@ -53,6 +54,17 @@ export function AgentStudioPage() {
 
   // Ref for workflow validation function
   const workflowValidateRef = useRef<(() => string[]) | null>(null);
+
+  // Derive available bindings from spec for workflow node selects
+  const bindings: WorkflowBindings | undefined = useMemo(() => {
+    if (spec.pattern?.type !== "workflow") return undefined;
+    return {
+      modelNames: Object.keys(spec.models ?? {}),
+      toolNames: spec.toolRefs ?? [],
+      knowledgeNames: (spec.knowledgeRefs ?? []).map((k) => k.name).filter(Boolean),
+      agentNames: (spec.subAgentRefs ?? []).map((s) => s.name).filter(Boolean),
+    };
+  }, [spec.pattern?.type, spec.models, spec.toolRefs, spec.knowledgeRefs, spec.subAgentRefs]);
 
   useDocumentTitle(agent?.displayName ? `${agent.displayName} — Studio` : t("studio.title"));
 
@@ -257,6 +269,7 @@ export function AgentStudioPage() {
                 graph={spec.graph ?? { nodes: [], edges: [] }}
                 onChange={handleGraphChange}
                 onValidateRef={workflowValidateRef}
+                bindings={bindings}
               />
             ) : (
               <PatternConfigForm

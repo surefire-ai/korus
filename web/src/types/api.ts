@@ -132,6 +132,13 @@ export interface GraphConfig {
   edges?: GraphEdge[];
 }
 
+export interface WorkflowBindings {
+  modelNames: string[];
+  toolNames: string[];
+  knowledgeNames: string[];
+  agentNames: string[];
+}
+
 export interface AgentSpecData {
   runtime?: RuntimeConfig;
   models?: Record<string, ModelConfig>;
