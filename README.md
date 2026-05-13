@@ -249,7 +249,7 @@ See [`web/README.md`](./web/README.md) for current scope and development notes.
 | --- | --- | --- |
 | Phase 1 | Kubernetes-native MVP with CRDs, compilation, gateway invocation, worker Jobs, GHCR images, and Helm skeleton. | First public development baseline is in place. |
 | Phase 2 | Real Eino runtime, provider catalog, model credential flow, policy checks, patterns, durable run artifacts, and stronger evaluation contracts. | **Complete.** |
-| Phase 3 | Manager-backed enterprise product surface with Web Console, tenants, workspaces, visual orchestration, evaluation UX, and provider management. | **Complete.** Manager API CRUD, CRD sync, Agent/Evaluation/Run/Provider detail pages, Visual Orchestration Studio with 6 patterns (react, router, reflection, tool_calling, plan_execute, workflow), and an interactive React Flow workflow canvas with kind-based node config fields. |
+| Phase 3 | Manager-backed enterprise product surface with Web Console, tenants, workspaces, visual orchestration, evaluation UX, and provider management. | **In progress.** The manager API, CRD sync, list/detail pages, and an initial Visual Orchestration Studio exist, but the build/evaluate/release loop is not yet product-complete. Workflow canvas authoring still needs compiler-aligned validation, reference-aware binding selectors, compiled artifact preview, revision semantics, and stronger end-to-end coverage. |
 | Phase 4 | Release workflows, distributed agent fabric with multi-runtime execution, autoscaling, SubAgent composition, and A2A interoperability. | Planned. |
 
 Detailed design notes:
@@ -257,6 +257,7 @@ Detailed design notes:
 - [Phase 2 Eino Runtime Design](./docs/phase2/eino-runtime-design.md)
 - [Agent Patterns, SubAgent, and A2A TODOs](./docs/phase2/agent-patterns-and-a2a-todo.md)
 - [Console Information Architecture](./docs/phase3/console-information-architecture.md)
+- [Phase 3 Completeness Audit](./docs/phase3/phase3-completeness-audit.md)
 - [Tenancy and Workspace Model](./docs/phase3/tenancy-workspace-model.md)
 - [v0.1.0 Release Notes](./docs/releases/v0.1.0.md)
 - [v0.1.0 Readiness Checklist](./docs/releases/v0.1.0-readiness.md)
@@ -312,7 +313,7 @@ Known alpha limits:
 - gateway Bearer authentication and token-bucket rate limiting are implemented;
   fine-grained authorization and request idempotency are still evolving;
 - AgentRun cancellation, retry, timeout handling, and durable artifact storage are implemented, while long-term trace storage after Pod cleanup remains an alpha limitation;
-- the Web Console has full CRUD for tenants, workspaces, and detail pages for agents, evaluations, runs, and providers, plus a visual orchestration studio with 6 pattern support;
+- the Web Console has tenant and workspace CRUD, list/detail pages for agents, evaluations, runs, and providers, and an initial visual orchestration studio, but Phase 3 remains incomplete until workflow authoring, evaluation comparison, release readiness, revision history, and run debugging form a verified product loop;
 - Helm is still a development install path.
 
 ## Contributing

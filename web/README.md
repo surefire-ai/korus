@@ -24,7 +24,7 @@ support:
 
 ## Current Status
 
-The Web Console is in place:
+The Web Console foundation is in place:
 
 - Vite + React + TypeScript application shell
 - Tailwind CSS styling entrypoint
@@ -34,17 +34,23 @@ The Web Console is in place:
 - Playwright e2e coverage for tenant and workspace flows
 - `lucide-react` for open-source, componentized icons
 
-The current UI is a product console rather than a landing page. It covers tenant navigation, workspace lists,
-workspace detail, workspace creation, workspace editing, and workspace deletion
-confirmation. Agents, Evaluations, Runs, and Providers have tenant-scoped list
-and detail pages backed by manager API contracts. The Visual Orchestration
-Studio supports six agent patterns, a React Flow workflow canvas, model cards
-with `baseURL` and structured Secret `credentialRef.name/key`, and
-knowledge-binding retrieval controls (`topK`, `scoreThreshold`). Runs expose a
+The current UI is a product-console foundation rather than a landing page. It
+covers tenant navigation, workspace lists, workspace detail, workspace creation,
+workspace editing, and workspace deletion confirmation. Agents, Evaluations,
+Runs, and Providers have tenant-scoped list and detail pages backed by manager
+API contracts. The Visual Orchestration Studio supports six agent patterns and
+an initial React Flow workflow canvas, but the canvas is not yet a
+product-complete authoring flow: it still needs compiler-aligned validation,
+reference-aware node configuration, compiled artifact preview, revision
+semantics, and stronger end-to-end workflow coverage. Runs expose a
 tenant-scoped execution history list and detail view with status, runtime, and
-trace references. The sidebar also reserves Settings so the console information
-architecture stays aligned with the enterprise roadmap while that backend is
-implemented.
+trace references, but structured output, artifacts, logs, and failure
+triage remain future work. The sidebar also reserves Settings so the console
+information architecture stays aligned with the enterprise roadmap while that
+backend is implemented.
+
+See [`docs/phase3/phase3-completeness-audit.md`](../docs/phase3/phase3-completeness-audit.md)
+for the current Phase 3 readiness assessment.
 
 Generated frontend artifacts are ignored by git:
 
