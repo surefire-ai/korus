@@ -1,3 +1,10 @@
+export interface User {
+  id: string;
+  username: string;
+  role: string;
+  tenantId?: string;
+}
+
 export interface Tenant {
   id: string;
   organizationId: string;

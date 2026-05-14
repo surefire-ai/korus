@@ -8,6 +8,7 @@ require (
 	github.com/eino-contrib/jsonschema v1.0.3
 	github.com/google/cel-go v0.20.1
 	github.com/jackc/pgx/v5 v5.9.2
+	golang.org/x/crypto v0.31.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240528184218-531527333157
 	k8s.io/api v0.31.0
 	k8s.io/apiextensions-apiserver v0.31.0
@@ -82,7 +83,7 @@ require (
 	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/term v0.21.0 // indirect
+	golang.org/x/term v0.27.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect

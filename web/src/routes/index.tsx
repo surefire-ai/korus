@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
+import { LoginPage } from "@/pages/LoginPage";
 import { TenantListPage } from "@/pages/TenantListPage";
 import { WorkspaceListPage } from "@/pages/WorkspaceListPage";
 import { WorkspaceDetailPage } from "@/pages/WorkspaceDetailPage";
@@ -16,11 +17,24 @@ import { ProviderListPage } from "@/pages/ProviderListPage";
 import { ProviderDetailPage } from "@/pages/ProviderDetailPage";
 import { RunListPage } from "@/pages/RunListPage";
 import { RunDetailPage } from "@/pages/RunDetailPage";
+import { AuthGuard } from "@/components/auth/AuthGuard";
+
+function AuthenticatedLayout() {
+  return (
+    <AuthGuard>
+      <AppShell />
+    </AuthGuard>
+  );
+}
 
 export const router = createBrowserRouter([
   {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
     path: "/",
-    element: <AppShell />,
+    element: <AuthenticatedLayout />,
     children: [
       { index: true, element: <Navigate to="/tenants" replace /> },
       { path: "tenants", element: <TenantListPage /> },

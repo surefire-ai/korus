@@ -500,5 +500,17 @@
         "custom": "Custom"
       }
     }
+  },
+  "auth": {
+    "login": "Sign In",
+    "logout": "Sign Out",
+    "loginTitle": "Korus Console",
+    "loginSubtitle": "Sign in to manage your agents",
+    "username": "Username",
+    "password": "Password",
+    "usernamePlaceholder": "Enter username",
+    "passwordPlaceholder": "Enter password",
+    "loggingIn": "Signing in...",
+    "loginFailed": "Invalid username or password"
   }
 }

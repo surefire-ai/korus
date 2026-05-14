@@ -500,5 +500,17 @@
         "custom": "自定义"
       }
     }
+  },
+  "auth": {
+    "login": "登录",
+    "logout": "退出登录",
+    "loginTitle": "Korus 控制台",
+    "loginSubtitle": "登录以管理您的 Agent",
+    "username": "用户名",
+    "password": "密码",
+    "usernamePlaceholder": "请输入用户名",
+    "passwordPlaceholder": "请输入密码",
+    "loggingIn": "登录中...",
+    "loginFailed": "用户名或密码错误"
   }
 }

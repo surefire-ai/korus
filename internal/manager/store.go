@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -501,6 +502,43 @@ type SkillStore interface {
 	DeleteSkill(ctx context.Context, id string) error
 }
 
+// User types
+
+type UserRecord struct {
+	ID           string
+	Username     string
+	PasswordHash string
+	Role         string // "admin", "user"
+	TenantID     string // "" = all tenants (admin)
+	CreatedAt    string
+}
+
+type UserStore interface {
+	GetUser(ctx context.Context, id string) (*UserRecord, error)
+	GetUserByUsername(ctx context.Context, username string) (*UserRecord, error)
+	ListUsers(ctx context.Context) ([]UserRecord, error)
+	CreateUser(ctx context.Context, u UserRecord) error
+	UpdateUser(ctx context.Context, id string, fields map[string]string) (*UserRecord, error)
+	DeleteUser(ctx context.Context, id string) error
+}
+
+// Session types
+
+type Session struct {
+	ID        string
+	UserID    string
+	Username  string
+	Role      string
+	TenantID  string
+	CreatedAt time.Time
+}
+
+type SessionStore interface {
+	CreateSession(ctx context.Context, s Session) error
+	GetSession(ctx context.Context, id string) (*Session, error)
+	DeleteSession(ctx context.Context, id string) error
+}
+
 type Stores struct {
 	Workspaces      WorkspaceStore
 	Tenants         TenantStore
@@ -515,6 +553,8 @@ type Stores struct {
 	MCPServers      MCPServerStore
 	AgentPolicies   AgentPolicyStore
 	Skills          SkillStore
+	Users           UserStore
+	Sessions        SessionStore
 }
 
 type SQLWorkspaceStore struct {

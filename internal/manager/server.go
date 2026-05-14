@@ -2,6 +2,8 @@ package manager
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +15,7 @@ import (
 	"time"
 
 	"github.com/surefire-ai/korus/internal/compiler"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Server struct {
@@ -610,6 +613,28 @@ type UpdateSkillRequest struct {
 	Entrypoint  *string `json:"entrypoint,omitempty"`
 }
 
+// Auth types
+
+type contextKey string
+
+const userContextKey contextKey = "user"
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type UserResponse struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
+	TenantID string `json:"tenantId,omitempty"`
+}
+
+type SetupResponse struct {
+	Password string `json:"password"`
+}
+
 func (s Server) syncer() CRDSyncer {
 	if s.Syncer == nil {
 		return NoopCRDSyncer{}
@@ -636,6 +661,32 @@ func (s Server) Start(ctx context.Context) error {
 	}
 	if syncer, ok := s.Syncer.(storeAwareSyncer); ok {
 		syncer.SetStores(&s.Stores)
+	}
+
+	// First-run admin setup
+	if s.Stores.Users != nil {
+		users, _ := s.Stores.Users.ListUsers(ctx)
+		if len(users) == 0 {
+			password := generateRandomString(16)
+			hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			if err != nil {
+				return fmt.Errorf("failed to hash admin password: %w", err)
+			}
+			if err := s.Stores.Users.CreateUser(ctx, UserRecord{
+				ID:           "admin",
+				Username:     "admin",
+				PasswordHash: string(hash),
+				Role:         "admin",
+				TenantID:     "",
+				CreatedAt:    time.Now().UTC().Format(time.RFC3339),
+			}); err != nil {
+				return fmt.Errorf("failed to create admin user: %w", err)
+			}
+			log.Printf("══════════════════════════════════════════════════")
+			log.Printf("  ADMIN PASSWORD: %s", password)
+			log.Printf("  Username: admin")
+			log.Printf("══════════════════════════════════════════════════")
+		}
 	}
 
 	server := &http.Server{
@@ -679,6 +730,10 @@ func (s Server) Handler() http.Handler {
 	mux.HandleFunc("/healthz", s.handleHealth)
 	mux.HandleFunc("/readyz", s.handleReady)
 	mux.HandleFunc("/api/v1/info", s.handleInfo)
+	mux.HandleFunc("/api/v1/auth/login", s.handleAuthLogin)
+	mux.HandleFunc("/api/v1/auth/logout", s.handleAuthLogout)
+	mux.HandleFunc("/api/v1/auth/me", s.handleAuthMe)
+	mux.HandleFunc("/api/v1/auth/setup", s.handleAuthSetup)
 	mux.HandleFunc("/api/v1/workspaces/", s.handleWorkspace)
 	mux.HandleFunc("/api/v1/tenants/", s.handleTenant)
 	mux.HandleFunc("/api/v1/agents/", s.handleAgent)
@@ -692,7 +747,7 @@ func (s Server) Handler() http.Handler {
 	mux.HandleFunc("/api/v1/mcp-servers/", s.handleMCPServer)
 	mux.HandleFunc("/api/v1/agent-policies/", s.handleAgentPolicy)
 	mux.HandleFunc("/api/v1/skills/", s.handleSkill)
-	return corsMiddleware(mux)
+	return corsMiddleware(s.authMiddleware(mux))
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
@@ -707,6 +762,169 @@ func corsMiddleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (s Server) authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Public routes that don't require auth
+		path := r.URL.Path
+		if path == "/healthz" || path == "/readyz" || path == "/api/v1/info" ||
+			path == "/api/v1/auth/login" || path == "/api/v1/auth/logout" || path == "/api/v1/auth/setup" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if s.Stores.Sessions == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		cookie, err := r.Cookie("session_id")
+		if err != nil || cookie.Value == "" {
+			writeError(w, http.StatusUnauthorized, "authentication required")
+			return
+		}
+
+		sess, err := s.Stores.Sessions.GetSession(r.Context(), cookie.Value)
+		if err != nil {
+			writeError(w, http.StatusUnauthorized, "invalid session")
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), userContextKey, sess)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func generateRandomString(n int) string {
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(b)[:n]
+}
+
+// Auth handlers
+
+func (s Server) handleAuthLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method must be POST")
+		return
+	}
+	if s.Stores.Users == nil || s.Stores.Sessions == nil {
+		writeError(w, http.StatusServiceUnavailable, "auth not configured")
+		return
+	}
+	var req LoginRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.Username == "" || req.Password == "" {
+		writeError(w, http.StatusBadRequest, "username and password are required")
+		return
+	}
+	user, err := s.Stores.Users.GetUserByUsername(r.Context(), req.Username)
+	if err != nil {
+		writeError(w, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		writeError(w, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+	sessionID := generateRandomString(32)
+	sess := Session{
+		ID:        sessionID,
+		UserID:    user.ID,
+		Username:  user.Username,
+		Role:      user.Role,
+		TenantID:  user.TenantID,
+		CreatedAt: time.Now().UTC(),
+	}
+	if err := s.Stores.Sessions.CreateSession(r.Context(), sess); err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to create session")
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   86400 * 7, // 7 days
+	})
+	writeJSON(w, http.StatusOK, UserResponse{
+		ID: user.ID, Username: user.Username, Role: user.Role, TenantID: user.TenantID,
+	})
+}
+
+func (s Server) handleAuthLogout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method must be POST")
+		return
+	}
+	cookie, err := r.Cookie("session_id")
+	if err == nil && s.Stores.Sessions != nil {
+		_ = s.Stores.Sessions.DeleteSession(r.Context(), cookie.Value)
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s Server) handleAuthMe(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeError(w, http.StatusMethodNotAllowed, "method must be GET")
+		return
+	}
+	sess, ok := r.Context().Value(userContextKey).(*Session)
+	if !ok || sess == nil {
+		writeError(w, http.StatusUnauthorized, "not authenticated")
+		return
+	}
+	writeJSON(w, http.StatusOK, UserResponse{
+		ID: sess.UserID, Username: sess.Username, Role: sess.Role, TenantID: sess.TenantID,
+	})
+}
+
+func (s Server) handleAuthSetup(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method must be POST")
+		return
+	}
+	if s.Stores.Users == nil {
+		writeError(w, http.StatusServiceUnavailable, "auth not configured")
+		return
+	}
+	users, _ := s.Stores.Users.ListUsers(r.Context())
+	if len(users) > 0 {
+		writeError(w, http.StatusConflict, "admin already exists")
+		return
+	}
+	password := generateRandomString(16)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to hash password")
+		return
+	}
+	if err := s.Stores.Users.CreateUser(r.Context(), UserRecord{
+		ID:           "admin",
+		Username:     "admin",
+		PasswordHash: string(hash),
+		Role:         "admin",
+		TenantID:     "",
+		CreatedAt:    time.Now().UTC().Format(time.RFC3339),
+	}); err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to create admin user")
+		return
+	}
+	writeJSON(w, http.StatusCreated, SetupResponse{Password: password})
 }
 
 func (s Server) handleHealth(w http.ResponseWriter, r *http.Request) {

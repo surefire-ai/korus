@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 )
 
 type devWorkspaceStore struct {
@@ -1414,6 +1415,124 @@ func (s *devSkillStore) DeleteSkill(_ context.Context, id string) error {
 	return nil
 }
 
+// devUserStore is an in-memory UserStore for development.
+type devUserStore struct {
+	records    map[string]UserRecord
+	orderedIDs []string
+	mu         sync.RWMutex
+}
+
+func (s *devUserStore) GetUser(_ context.Context, id string) (*UserRecord, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &rec, nil
+}
+
+func (s *devUserStore) GetUserByUsername(_ context.Context, username string) (*UserRecord, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, rec := range s.records {
+		if rec.Username == username {
+			return &rec, nil
+		}
+	}
+	return nil, ErrNotFound
+}
+
+func (s *devUserStore) ListUsers(_ context.Context) ([]UserRecord, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	result := make([]UserRecord, 0, len(s.orderedIDs))
+	for _, id := range s.orderedIDs {
+		result = append(result, s.records[id])
+	}
+	return result, nil
+}
+
+func (s *devUserStore) CreateUser(_ context.Context, u UserRecord) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, exists := s.records[u.ID]; exists {
+		return ErrConflict
+	}
+	s.records[u.ID] = u
+	s.orderedIDs = append(s.orderedIDs, u.ID)
+	return nil
+}
+
+func (s *devUserStore) UpdateUser(_ context.Context, id string, fields map[string]string) (*UserRecord, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["username"]; ok {
+		rec.Username = v
+	}
+	if v, ok := fields["password_hash"]; ok {
+		rec.PasswordHash = v
+	}
+	if v, ok := fields["role"]; ok {
+		rec.Role = v
+	}
+	if v, ok := fields["tenant_id"]; ok {
+		rec.TenantID = v
+	}
+	s.records[id] = rec
+	return &rec, nil
+}
+
+func (s *devUserStore) DeleteUser(_ context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, exists := s.records[id]; !exists {
+		return ErrNotFound
+	}
+	delete(s.records, id)
+	for i, uid := range s.orderedIDs {
+		if uid == id {
+			s.orderedIDs = append(s.orderedIDs[:i], s.orderedIDs[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
+// devSessionStore is an in-memory SessionStore for development.
+type devSessionStore struct {
+	sessions map[string]Session
+	mu       sync.RWMutex
+}
+
+func (s *devSessionStore) CreateSession(_ context.Context, sess Session) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.sessions[sess.ID] = sess
+	return nil
+}
+
+func (s *devSessionStore) GetSession(_ context.Context, id string) (*Session, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	sess, ok := s.sessions[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &sess, nil
+}
+
+func (s *devSessionStore) DeleteSession(_ context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.sessions, id)
+	return nil
+}
+
 func NewFakeStores() Stores {
 	workspaces := &devWorkspaceStore{
 		records: map[string]WorkspaceRecord{
@@ -1548,6 +1667,13 @@ func NewFakeStores() Stores {
 		records:    map[string]SkillRecord{},
 		orderedIDs: []string{},
 	}
+	users := &devUserStore{
+		records:    map[string]UserRecord{},
+		orderedIDs: []string{},
+	}
+	sessions := &devSessionStore{
+		sessions: map[string]Session{},
+	}
 	return Stores{
 		Workspaces:      workspaces,
 		Tenants:         tenants,
@@ -1562,5 +1688,7 @@ func NewFakeStores() Stores {
 		MCPServers:      mcpServers,
 		AgentPolicies:   agentPolicies,
 		Skills:          skills,
+		Users:           users,
+		Sessions:        sessions,
 	}
 }
