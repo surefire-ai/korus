@@ -66,9 +66,7 @@ export function EvaluationDetailCard({ evaluation }: EvaluationDetailCardProps) 
         <div className="surface-muted rounded-lg p-4">
           <dt className="text-xs font-semibold uppercase text-zinc-500">{t("evaluation.fields.gatePassed")}</dt>
           <dd className="mt-2">
-            <span className={evaluation.gatePassed ? "inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700" : "inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700"}>
-              {evaluation.gatePassed ? t("evaluation.gatePassed") : t("evaluation.gateFailed")}
-            </span>
+            <StatusBadge status={evaluation.gatePassed ? "passed" : "failed"} />
           </dd>
         </div>
 

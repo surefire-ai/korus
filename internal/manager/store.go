@@ -338,13 +338,183 @@ type RunStore interface {
 	DeleteRun(ctx context.Context, id string) error
 }
 
+type PromptTemplateRecord struct {
+	ID          string
+	TenantID    string
+	WorkspaceID string
+	Slug        string
+	DisplayName string
+	Description string
+	Status      string
+	Template    string
+	Variables   []string
+}
+
+type ToolProviderRecord struct {
+	ID          string
+	TenantID    string
+	WorkspaceID string
+	Slug        string
+	DisplayName string
+	Description string
+	Status      string
+	ToolType    string
+	Endpoint    string
+	Config      map[string]interface{}
+}
+
+type KnowledgeBaseRecord struct {
+	ID           string
+	TenantID     string
+	WorkspaceID  string
+	Slug         string
+	DisplayName  string
+	Description  string
+	Status       string
+	SourceType   string
+	SourceRef    string
+	EmbedModel   string
+	ChunkSize    int
+	ChunkOverlap int
+}
+
+type PromptTemplateStore interface {
+	GetPromptTemplate(ctx context.Context, id string) (*PromptTemplateRecord, error)
+	ListPromptTemplates(ctx context.Context, page, limit int) ([]PromptTemplateRecord, int, error)
+	ListPromptTemplatesByTenant(ctx context.Context, tenantID string, page, limit int) ([]PromptTemplateRecord, int, error)
+	ListPromptTemplatesByWorkspace(ctx context.Context, workspaceID string, page, limit int) ([]PromptTemplateRecord, int, error)
+	CreatePromptTemplate(ctx context.Context, pt PromptTemplateRecord) error
+	UpdatePromptTemplate(ctx context.Context, id string, fields map[string]string) (*PromptTemplateRecord, error)
+	DeletePromptTemplate(ctx context.Context, id string) error
+}
+
+type ToolProviderStore interface {
+	GetToolProvider(ctx context.Context, id string) (*ToolProviderRecord, error)
+	ListToolProviders(ctx context.Context, page, limit int) ([]ToolProviderRecord, int, error)
+	ListToolProvidersByTenant(ctx context.Context, tenantID string, page, limit int) ([]ToolProviderRecord, int, error)
+	ListToolProvidersByWorkspace(ctx context.Context, workspaceID string, page, limit int) ([]ToolProviderRecord, int, error)
+	CreateToolProvider(ctx context.Context, tp ToolProviderRecord) error
+	UpdateToolProvider(ctx context.Context, id string, fields map[string]string) (*ToolProviderRecord, error)
+	DeleteToolProvider(ctx context.Context, id string) error
+}
+
+type KnowledgeBaseStore interface {
+	GetKnowledgeBase(ctx context.Context, id string) (*KnowledgeBaseRecord, error)
+	ListKnowledgeBases(ctx context.Context, page, limit int) ([]KnowledgeBaseRecord, int, error)
+	ListKnowledgeBasesByTenant(ctx context.Context, tenantID string, page, limit int) ([]KnowledgeBaseRecord, int, error)
+	ListKnowledgeBasesByWorkspace(ctx context.Context, workspaceID string, page, limit int) ([]KnowledgeBaseRecord, int, error)
+	CreateKnowledgeBase(ctx context.Context, kb KnowledgeBaseRecord) error
+	UpdateKnowledgeBase(ctx context.Context, id string, fields map[string]string) (*KnowledgeBaseRecord, error)
+	DeleteKnowledgeBase(ctx context.Context, id string) error
+}
+
+type DatasetRecord struct {
+	ID          string
+	TenantID    string
+	WorkspaceID string
+	Slug        string
+	DisplayName string
+	Description string
+	Status      string
+	Format      string
+	SourceRef   string
+	RowCount    int
+	Columns     []string
+}
+
+type MCPServerRecord struct {
+	ID          string
+	TenantID    string
+	WorkspaceID string
+	Slug        string
+	DisplayName string
+	Description string
+	Status      string
+	Endpoint    string
+	Transport   string
+	Version     string
+}
+
+type AgentPolicyRecord struct {
+	ID          string
+	TenantID    string
+	WorkspaceID string
+	Slug        string
+	DisplayName string
+	Description string
+	Status      string
+	PolicyType  string
+	Rules       []string
+	Enforcement string
+}
+
+type SkillRecord struct {
+	ID          string
+	TenantID    string
+	WorkspaceID string
+	Slug        string
+	DisplayName string
+	Description string
+	Status      string
+	SkillType   string
+	Entrypoint  string
+	Config      map[string]interface{}
+}
+
+type DatasetStore interface {
+	GetDataset(ctx context.Context, id string) (*DatasetRecord, error)
+	ListDatasets(ctx context.Context, page, limit int) ([]DatasetRecord, int, error)
+	ListDatasetsByTenant(ctx context.Context, tenantID string, page, limit int) ([]DatasetRecord, int, error)
+	ListDatasetsByWorkspace(ctx context.Context, workspaceID string, page, limit int) ([]DatasetRecord, int, error)
+	CreateDataset(ctx context.Context, ds DatasetRecord) error
+	UpdateDataset(ctx context.Context, id string, fields map[string]string) (*DatasetRecord, error)
+	DeleteDataset(ctx context.Context, id string) error
+}
+
+type MCPServerStore interface {
+	GetMCPServer(ctx context.Context, id string) (*MCPServerRecord, error)
+	ListMCPServers(ctx context.Context, page, limit int) ([]MCPServerRecord, int, error)
+	ListMCPServersByTenant(ctx context.Context, tenantID string, page, limit int) ([]MCPServerRecord, int, error)
+	ListMCPServersByWorkspace(ctx context.Context, workspaceID string, page, limit int) ([]MCPServerRecord, int, error)
+	CreateMCPServer(ctx context.Context, mcp MCPServerRecord) error
+	UpdateMCPServer(ctx context.Context, id string, fields map[string]string) (*MCPServerRecord, error)
+	DeleteMCPServer(ctx context.Context, id string) error
+}
+
+type AgentPolicyStore interface {
+	GetAgentPolicy(ctx context.Context, id string) (*AgentPolicyRecord, error)
+	ListAgentPolicies(ctx context.Context, page, limit int) ([]AgentPolicyRecord, int, error)
+	ListAgentPoliciesByTenant(ctx context.Context, tenantID string, page, limit int) ([]AgentPolicyRecord, int, error)
+	ListAgentPoliciesByWorkspace(ctx context.Context, workspaceID string, page, limit int) ([]AgentPolicyRecord, int, error)
+	CreateAgentPolicy(ctx context.Context, policy AgentPolicyRecord) error
+	UpdateAgentPolicy(ctx context.Context, id string, fields map[string]string) (*AgentPolicyRecord, error)
+	DeleteAgentPolicy(ctx context.Context, id string) error
+}
+
+type SkillStore interface {
+	GetSkill(ctx context.Context, id string) (*SkillRecord, error)
+	ListSkills(ctx context.Context, page, limit int) ([]SkillRecord, int, error)
+	ListSkillsByTenant(ctx context.Context, tenantID string, page, limit int) ([]SkillRecord, int, error)
+	ListSkillsByWorkspace(ctx context.Context, workspaceID string, page, limit int) ([]SkillRecord, int, error)
+	CreateSkill(ctx context.Context, skill SkillRecord) error
+	UpdateSkill(ctx context.Context, id string, fields map[string]string) (*SkillRecord, error)
+	DeleteSkill(ctx context.Context, id string) error
+}
+
 type Stores struct {
-	Workspaces  WorkspaceStore
-	Tenants     TenantStore
-	Agents      AgentStore
-	Evaluations EvaluationStore
-	Providers   ProviderStore
-	Runs        RunStore
+	Workspaces      WorkspaceStore
+	Tenants         TenantStore
+	Agents          AgentStore
+	Evaluations     EvaluationStore
+	Providers       ProviderStore
+	Runs            RunStore
+	PromptTemplates PromptTemplateStore
+	ToolProviders   ToolProviderStore
+	KnowledgeBases  KnowledgeBaseStore
+	Datasets        DatasetStore
+	MCPServers      MCPServerStore
+	AgentPolicies   AgentPolicyStore
+	Skills          SkillStore
 }
 
 type SQLWorkspaceStore struct {

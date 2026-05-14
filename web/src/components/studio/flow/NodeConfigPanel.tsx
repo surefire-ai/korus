@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { X, Cpu, Wrench, Users, BookOpen, Code2, Play, Flag, Trash2 } from "lucide-react";
+import { X, Cpu, Wrench, Users, BookOpen, Code2, Play, Flag, Trash2, AlertTriangle } from "lucide-react";
 import type { WorkflowNodeData } from "./WorkflowNode";
 import type { WorkflowBindings } from "@/types/api";
 import { Input } from "@/components/shared/Input";
@@ -32,7 +32,12 @@ function FieldLabel({ label }: { label: string }) {
 }
 
 function FieldWarning({ message }: { message: string }) {
-  return <p className="mt-1 text-[10px] text-amber-600 font-medium">⚠ {message}</p>;
+  return (
+    <p className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-medium text-amber-600">
+      <AlertTriangle className="h-3 w-3 shrink-0" />
+      {message}
+    </p>
+  );
 }
 
 /** Build select options from declared names, preserving the current value even if not in list. */
@@ -52,15 +57,15 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose, bin
   const isTerminal = data.kind === "start" || data.kind === "end";
 
   return (
-    <div className="panel-slide-in w-80 shrink-0 border-l border-zinc-200 bg-white overflow-y-auto">
+    <div className="panel-slide-in w-80 shrink-0 border-l border-zinc-200/80 bg-white overflow-y-auto">
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200/80 bg-white/95 backdrop-blur-sm px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${bg} border border-zinc-200`}>
+          <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${bg} border border-zinc-200/80 shadow-sm`}>
             <Icon className={`h-4 w-4 ${color}`} />
           </div>
           <div>
-            <span className="text-sm font-semibold text-zinc-800 block">
+            <span className="text-sm font-semibold text-zinc-900 block">
               {t(`studio.workflow.kind.${data.kind}`)}
             </span>
             <span className="text-[10px] text-zinc-400">
@@ -68,7 +73,7 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose, bin
             </span>
           </div>
         </div>
-        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors">
+        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -182,7 +187,7 @@ export function NodeConfigPanel({ data, nodeId, onUpdate, onDelete, onClose, bin
       {/* Delete button */}
       {!isTerminal && (
         <div className="border-t border-zinc-100 p-4">
-          <Button variant="secondary" onClick={onDelete} className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200">
+          <Button variant="danger" size="sm" onClick={onDelete} className="w-full">
             <Trash2 className="h-3.5 w-3.5 mr-1.5" />
             {t("studio.workflow.deleteNode")}
           </Button>

@@ -286,6 +286,112 @@ export interface UpdateWorkspaceRequest {
   kubernetesWorkspaceName?: string;
 }
 
+export interface CreateAgentRequest {
+  id: string;
+  tenantId: string;
+  workspaceId: string;
+  slug: string;
+  displayName: string;
+  description?: string;
+  status?: string;
+  pattern?: string;
+  runtimeEngine?: string;
+  runnerClass?: string;
+  modelProvider?: string;
+  modelName?: string;
+  spec?: AgentSpecData;
+}
+
+export interface CreateTenantRequest {
+  id: string;
+  organizationId: string;
+  slug: string;
+  displayName: string;
+  status?: string;
+  defaultRegion?: string;
+}
+
+export interface UpdateTenantRequest {
+  displayName?: string;
+  status?: string;
+  defaultRegion?: string;
+}
+
+export interface CreateEvaluationRequest {
+  id: string;
+  tenantId: string;
+  workspaceId: string;
+  agentId: string;
+  slug: string;
+  displayName: string;
+  description?: string;
+  status?: string;
+  datasetName?: string;
+  datasetRevision?: string;
+  baselineRevision?: string;
+}
+
+export interface UpdateEvaluationRequest {
+  displayName?: string;
+  description?: string;
+  status?: string;
+  datasetName?: string;
+  datasetRevision?: string;
+  baselineRevision?: string;
+  score?: number;
+  gatePassed?: boolean;
+  samplesTotal?: number;
+  samplesEvaluated?: number;
+  latestRunId?: string;
+  reportRef?: string;
+}
+
+export interface CreateProviderRequest {
+  id: string;
+  tenantId: string;
+  workspaceId?: string;
+  provider: string;
+  displayName: string;
+  family?: string;
+  baseUrl?: string;
+  credentialRef?: string;
+  status?: string;
+  domestic?: boolean;
+  supportsJsonSchema?: boolean;
+  supportsToolCalling?: boolean;
+}
+
+export interface UpdateProviderRequest {
+  displayName?: string;
+  family?: string;
+  baseUrl?: string;
+  credentialRef?: string;
+  status?: string;
+  domestic?: boolean;
+  supportsJsonSchema?: boolean;
+  supportsToolCalling?: boolean;
+}
+
+export interface CreateRunRequest {
+  id: string;
+  tenantId: string;
+  workspaceId: string;
+  agentId: string;
+  evaluationId?: string;
+  agentRevision?: string;
+  status?: string;
+  runtimeEngine?: string;
+  runnerClass?: string;
+}
+
+export interface UpdateRunRequest {
+  status?: string;
+  startedAt?: string;
+  completedAt?: string;
+  summary?: string;
+  traceRef?: string;
+}
+
 export interface ApiErrorResponse {
   error: string;
 }

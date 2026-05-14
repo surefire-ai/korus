@@ -1,7 +1,8 @@
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAgent } from "@/api/agents";
+import { useAgent, useDeleteAgent } from "@/api/agents";
 import { useRuns } from "@/api/runs";
 import { useEvaluations } from "@/api/evaluations";
 import { AgentDetailCard } from "@/components/agents/AgentDetailCard";
@@ -14,7 +15,8 @@ import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { Card } from "@/components/shared/Card";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/shared/Button";
-import { Settings } from "lucide-react";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { Settings, Trash2 } from "lucide-react";
 
 const LINKED_LIMIT = 5;
 
@@ -22,6 +24,8 @@ export function AgentDetailPage() {
   const { t } = useTranslation();
   const { tenantId, agentId } = useParams<{ tenantId: string; agentId: string }>();
   const navigate = useNavigate();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const deleteMutation = useDeleteAgent();
   const { data: agent, isLoading, isError, error, refetch } = useAgent(agentId);
   useDocumentTitle(agent?.displayName);
 
@@ -49,13 +53,22 @@ export function AgentDetailPage() {
         title={agent.displayName}
         subtitle={t("agent.detailSubtitle")}
         actions={
-          <Button
-            variant="secondary"
-            onClick={() => navigate(`/tenants/${tenantId}/agents/${agentId}/studio`)}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            {t("studio.openStudio")}
-          </Button>
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => navigate(`/tenants/${tenantId}/agents/${agentId}/studio`)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              {t("studio.openStudio")}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t("common.delete")}
+            </Button>
+          </>
         }
       />
 
@@ -113,6 +126,21 @@ export function AgentDetailPage() {
         )}
         {evalsData && evalsData.evaluations.length > 0 && <EvaluationTable evaluations={evalsData.evaluations} />}
       </div>
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={() => {
+          deleteMutation.mutate(agentId!, {
+            onSuccess: () => navigate(`/tenants/${tenantId}/agents`),
+          });
+        }}
+        title={t("agent.deleteTitle", "Delete Agent")}
+        message={t("agent.deleteMessage", "Are you sure you want to delete this agent? This action cannot be undone.")}
+        confirmLabel={t("common.delete")}
+        isDestructive
+        isPending={deleteMutation.isPending}
+      />
     </div>
   );
 }

@@ -64,7 +64,7 @@ export function RunDetailCard({ run }: RunDetailCardProps) {
         </div>
         {duration && (
           <div className="surface-muted rounded-lg p-4">
-            <dt className="text-xs font-semibold uppercase text-zinc-500">Duration</dt>
+            <dt className="text-xs font-semibold uppercase text-zinc-500">{t("run.fields.duration")}</dt>
             <dd className="mt-2 text-lg font-bold text-teal-600">{duration}</dd>
           </div>
         )}

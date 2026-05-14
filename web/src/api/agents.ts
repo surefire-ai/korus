@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Agent, PaginatedAgentsResponse, CompileResult } from "@/types/api";
+import type { Agent, PaginatedAgentsResponse, CompileResult, CreateAgentRequest } from "@/types/api";
 import { api } from "./client";
 
 export function useAgents(page: number, limit: number, tenantId?: string, workspaceId?: string) {
@@ -18,6 +18,26 @@ export function useAgent(id: string | undefined) {
     queryKey: ["agents", id],
     queryFn: () => api.get<Agent>(`/agents/${id}`),
     enabled: !!id,
+  });
+}
+
+export function useCreateAgent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateAgentRequest) => api.post<Agent>("/agents/", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+    },
+  });
+}
+
+export function useDeleteAgent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/agents/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+    },
   });
 }
 

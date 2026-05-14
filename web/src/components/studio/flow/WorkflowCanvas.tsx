@@ -18,6 +18,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import dagre from "dagre";
+import { Grid3X3, Maximize2, Trash2, X, AlertTriangle, Network } from "lucide-react";
 import type { GraphConfig, GraphNode, GraphEdge, WorkflowBindings } from "@/types/api";
 import { WorkflowNode, type WorkflowNodeData } from "./WorkflowNode";
 import { NodePalette } from "./NodePalette";
@@ -416,26 +417,29 @@ export function WorkflowCanvas({ graph, onChange, onValidateRef, bindings }: Wor
           <button
             type="button"
             onClick={handleAutoLayout}
-            className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-600 shadow-sm hover:bg-zinc-50 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-zinc-600 shadow-sm backdrop-blur-sm transition-all hover:border-zinc-300 hover:bg-white hover:shadow-md"
             title={t("studio.workflow.autoLayout")}
           >
-            ⊞ {t("studio.workflow.autoLayout")}
+            <Grid3X3 className="h-3.5 w-3.5" />
+            {t("studio.workflow.autoLayout")}
           </button>
           <button
             type="button"
             onClick={() => reactFlowInstance?.fitView({ padding: 0.2 })}
-            className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-600 shadow-sm hover:bg-zinc-50 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-zinc-600 shadow-sm backdrop-blur-sm transition-all hover:border-zinc-300 hover:bg-white hover:shadow-md"
             title={t("studio.workflow.fitView")}
           >
-            ⊡ {t("studio.workflow.fitView")}
+            <Maximize2 className="h-3.5 w-3.5" />
+            {t("studio.workflow.fitView")}
           </button>
           <button
             type="button"
             onClick={handleClear}
-            className="rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-600 shadow-sm hover:bg-red-50 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-rose-600 shadow-sm backdrop-blur-sm transition-all hover:border-rose-300 hover:bg-rose-50 hover:shadow-md"
             title={t("studio.workflow.clearCanvas")}
           >
-            ✕ {t("studio.workflow.clearCanvas")}
+            <Trash2 className="h-3.5 w-3.5" />
+            {t("studio.workflow.clearCanvas")}
           </button>
         </div>
 
@@ -487,60 +491,70 @@ export function WorkflowCanvas({ graph, onChange, onValidateRef, bindings }: Wor
         {nodes.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
-              <div className="text-4xl mb-3 opacity-30">⊞</div>
-              <p className="text-sm font-medium text-zinc-400">{t("studio.workflow.emptyTitle")}</p>
-              <p className="text-xs text-zinc-400 mt-1">{t("studio.workflow.emptyHint")}</p>
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-zinc-50 to-zinc-100/80 shadow-sm">
+                <Network className="h-8 w-8 text-zinc-300" />
+              </div>
+              <p className="text-sm font-semibold text-zinc-400">{t("studio.workflow.emptyTitle")}</p>
+              <p className="mt-1.5 max-w-xs text-xs leading-5 text-zinc-400">{t("studio.workflow.emptyHint")}</p>
             </div>
           </div>
         )}
 
         {/* Validation errors */}
         {validationErrors.length > 0 && (
-          <div className="absolute top-3 left-3 z-20 max-w-xs rounded-lg border border-amber-200 bg-amber-50 p-3 shadow-sm">
-            <p className="text-xs font-semibold text-amber-700 mb-1">⚠ {t("studio.workflow.validationErrors")}</p>
-            <ul className="space-y-0.5">
+          <div className="alert-slide-in absolute top-3 left-3 z-20 max-w-xs rounded-xl border border-amber-200/80 bg-gradient-to-b from-amber-50 to-amber-100/60 p-4 shadow-lg">
+            <div className="mb-2 flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-100">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+              </div>
+              <p className="text-xs font-semibold text-amber-800">{t("studio.workflow.validationErrors")}</p>
+            </div>
+            <ul className="space-y-1 pl-8">
               {validationErrors.map((err, i) => (
-                <li key={i} className="text-[11px] text-amber-600">• {err}</li>
+                <li key={i} className="list-disc text-[11px] leading-4 text-amber-700">{err}</li>
               ))}
             </ul>
             <button
               type="button"
               onClick={() => setValidationErrors([])}
-              className="mt-2 text-[10px] text-amber-600 hover:text-amber-800 underline"
+              className="mt-2.5 ml-8 inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 transition-colors hover:text-amber-800"
             >
+              <X className="h-3 w-3" />
               {t("common.dismiss")}
             </button>
           </div>
         )}
 
         {/* Bottom status bar */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-3">
-          <div className="rounded-full bg-zinc-800/90 px-3 py-1 text-[11px] font-medium text-white shadow backdrop-blur-sm">
-            {nodes.length} {t("studio.workflow.nodes")} · {edges.length} {t("studio.workflow.edges")}
+        <div className="absolute bottom-3 left-3 flex items-center gap-2">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-zinc-700/30 bg-zinc-900/85 px-3 py-1 text-[11px] font-medium text-zinc-200 shadow-lg backdrop-blur-sm">
+            <span className="text-zinc-400">{nodes.length}</span> {t("studio.workflow.nodes")}
+            <span className="text-zinc-600">·</span>
+            <span className="text-zinc-400">{edges.length}</span> {t("studio.workflow.edges")}
           </div>
           {(selectedNodeId || selectedEdgeId) && (
-            <div className="rounded-full bg-teal-600/90 px-3 py-1 text-[11px] font-medium text-white shadow backdrop-blur-sm">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-teal-500/30 bg-teal-600/90 px-3 py-1 text-[11px] font-medium text-white shadow-lg backdrop-blur-sm">
               {selectedNodeId
                 ? `${t("studio.workflow.selected")}: ${nodes.find((n) => n.id === selectedNodeId)?.data.label || selectedNodeId}`
-                : `${t("studio.workflow.edgeSelected")} (⌫ ${t("studio.workflow.delete")})`}
+                : `${t("studio.workflow.edgeSelected")} · ⌫ ${t("studio.workflow.delete")}`}
             </div>
           )}
         </div>
 
         {/* Keyboard hints (dismissible) */}
         {showHints && (
-          <div className="absolute bottom-3 right-3 rounded-lg bg-zinc-800/80 px-3 py-2 text-[10px] text-zinc-300 shadow backdrop-blur-sm group">
+          <div className="absolute bottom-3 right-3 rounded-xl border border-zinc-700/50 bg-zinc-900/90 px-3.5 py-2.5 text-[10px] text-zinc-300 shadow-lg backdrop-blur-sm group">
             <button
               type="button"
               onClick={() => setShowHints(false)}
-              className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-zinc-600 text-white text-[8px] opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-zinc-600 bg-zinc-700 text-zinc-300 opacity-0 shadow transition-all hover:bg-zinc-600 hover:text-white group-hover:opacity-100"
             >
-              ✕
+              <X className="h-3 w-3" />
             </button>
-            <div className="flex flex-col gap-0.5">
-              <span><kbd className="rounded bg-zinc-700 px-1 py-0.5 text-zinc-200">⌫</kbd> {t("studio.workflow.hintDelete")}</span>
-              <span><kbd className="rounded bg-zinc-700 px-1 py-0.5 text-zinc-200">Esc</kbd> {t("studio.workflow.hintDeselect")}</span>
-              <span><kbd className="rounded bg-zinc-700 px-1 py-0.5 text-zinc-200">Shift</kbd>+{t("studio.workflow.hintMultiSelect")}</span>
+            <div className="flex flex-col gap-1">
+              <span className="flex items-center gap-1.5"><kbd className="rounded bg-zinc-700/80 px-1.5 py-0.5 text-zinc-300">⌫</kbd> {t("studio.workflow.hintDelete")}</span>
+              <span className="flex items-center gap-1.5"><kbd className="rounded bg-zinc-700/80 px-1.5 py-0.5 text-zinc-300">Esc</kbd> {t("studio.workflow.hintDeselect")}</span>
+              <span className="flex items-center gap-1.5"><kbd className="rounded bg-zinc-700/80 px-1.5 py-0.5 text-zinc-300">Shift</kbd>+{t("studio.workflow.hintMultiSelect")}</span>
               <span>{t("studio.workflow.hintDrag")}</span>
               <span>{t("studio.workflow.hintEdgeDoubleClick")}</span>
             </div>
@@ -549,29 +563,33 @@ export function WorkflowCanvas({ graph, onChange, onValidateRef, bindings }: Wor
 
         {/* Edge label editor overlay */}
         {editingEdgeId && editingEdge && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
-            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-xl">
-              <h4 className="mb-3 text-sm font-semibold text-zinc-800">
-                {t("studio.workflow.edgeCondition")}
-              </h4>
-              <input
-                autoFocus
-                type="text"
-                value={edgeLabelDraft}
-                onChange={(e) => setEdgeLabelDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleEdgeLabelSave();
-                  if (e.key === "Escape") { setEditingEdgeId(null); setEdgeLabelDraft(""); }
-                }}
-                placeholder={t("studio.workflow.edgeConditionPlaceholder")}
-                className="w-64 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-              />
-              <p className="mt-2 text-[11px] text-zinc-500">
-                {t("studio.workflow.edgeConditionHint")}
-              </p>
-              <div className="mt-3 flex justify-end gap-2">
-                <button type="button" onClick={() => { setEditingEdgeId(null); setEdgeLabelDraft(""); }} className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100">{t("common.cancel")}</button>
-                <button type="button" onClick={handleEdgeLabelSave} className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-700">{t("common.save")}</button>
+          <div className="overlay-fade-in absolute inset-0 z-50 flex items-center justify-center bg-zinc-950/20 backdrop-blur-[2px]">
+            <div className="modal-panel-reveal surface-elevated w-80 rounded-xl p-0">
+              <div className="border-b border-zinc-200/60 px-5 py-4">
+                <h4 className="text-sm font-semibold text-zinc-900">
+                  {t("studio.workflow.edgeCondition")}
+                </h4>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  {t("studio.workflow.edgeConditionHint")}
+                </p>
+              </div>
+              <div className="px-5 py-4">
+                <input
+                  autoFocus
+                  type="text"
+                  value={edgeLabelDraft}
+                  onChange={(e) => setEdgeLabelDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleEdgeLabelSave();
+                    if (e.key === "Escape") { setEditingEdgeId(null); setEdgeLabelDraft(""); }
+                  }}
+                  placeholder={t("studio.workflow.edgeConditionPlaceholder")}
+                  className="control-input block w-full px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="flex justify-end gap-2 border-t border-zinc-200/60 px-5 py-3">
+                <button type="button" onClick={() => { setEditingEdgeId(null); setEdgeLabelDraft(""); }} className="control-button rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50">{t("common.cancel")}</button>
+                <button type="button" onClick={handleEdgeLabelSave} className="control-button rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-700">{t("common.save")}</button>
               </div>
             </div>
           </div>

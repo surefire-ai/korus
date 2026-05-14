@@ -119,6 +119,11 @@
     "emptyDescription": "Agents created in workspaces will appear here.",
     "detailSubtitle": "Agent configuration, runtime, and revision history",
     "notFound": "Agent not found",
+    "createTitle": "Create Agent",
+    "createSubtitle": "Add a new agent to this workspace",
+    "createButton": "Create Agent",
+    "createError": "Failed to create agent",
+    "newButton": "New Agent",
     "fields": {
       "id": "ID",
       "slug": "Slug",
@@ -198,7 +203,8 @@
       "startedAt": "Started At",
       "completedAt": "Completed At",
       "summary": "Summary",
-      "traceRef": "Trace Reference"
+      "traceRef": "Trace Reference",
+      "duration": "Duration"
     }
   },
   "provider": {

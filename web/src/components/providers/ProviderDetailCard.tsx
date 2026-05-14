@@ -53,7 +53,7 @@ export function ProviderDetailCard({ provider }: ProviderDetailCardProps) {
           <dd className="mt-2 text-sm font-mono text-zinc-950">{provider.family}</dd>
         </div>
         <div className="surface-muted rounded-lg p-4 sm:col-span-2">
-          <dt className="text-xs font-semibold uppercase text-zinc-500">Capabilities</dt>
+          <dt className="text-xs font-semibold uppercase text-zinc-500">{t("detailSection.capabilities")}</dt>
           <dd className="mt-2 flex flex-wrap gap-2">
             <CapabilityBadge supported={provider.domestic} label={t("provider.domestic")} />
             <CapabilityBadge supported={provider.supportsJsonSchema} label={t("provider.jsonSchema")} />

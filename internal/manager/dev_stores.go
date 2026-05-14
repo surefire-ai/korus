@@ -690,6 +690,730 @@ func (s *devRunStore) DeleteRun(_ context.Context, id string) error {
 	return nil
 }
 
+// PromptTemplate dev store
+
+type devPromptTemplateStore struct {
+	records    map[string]PromptTemplateRecord
+	orderedIDs []string
+}
+
+func (s devPromptTemplateStore) GetPromptTemplate(_ context.Context, id string) (*PromptTemplateRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &rec, nil
+}
+
+func (s devPromptTemplateStore) ListPromptTemplates(_ context.Context, page, limit int) ([]PromptTemplateRecord, int, error) {
+	total := len(s.records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []PromptTemplateRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	result := make([]PromptTemplateRecord, 0, end-start)
+	for i := start; i < end; i++ {
+		result = append(result, s.records[s.orderedIDs[i]])
+	}
+	return result, total, nil
+}
+
+func (s devPromptTemplateStore) ListPromptTemplatesByTenant(_ context.Context, tenantID string, page, limit int) ([]PromptTemplateRecord, int, error) {
+	filtered := make([]PromptTemplateRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].TenantID == tenantID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginatePromptTemplates(filtered, page, limit)
+}
+
+func (s devPromptTemplateStore) ListPromptTemplatesByWorkspace(_ context.Context, workspaceID string, page, limit int) ([]PromptTemplateRecord, int, error) {
+	filtered := make([]PromptTemplateRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].WorkspaceID == workspaceID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginatePromptTemplates(filtered, page, limit)
+}
+
+func paginatePromptTemplates(records []PromptTemplateRecord, page, limit int) ([]PromptTemplateRecord, int, error) {
+	total := len(records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []PromptTemplateRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	return records[start:end], total, nil
+}
+
+func (s *devPromptTemplateStore) CreatePromptTemplate(_ context.Context, pt PromptTemplateRecord) error {
+	if _, exists := s.records[pt.ID]; exists {
+		return ErrConflict
+	}
+	s.records[pt.ID] = pt
+	s.orderedIDs = append(s.orderedIDs, pt.ID)
+	return nil
+}
+
+func (s *devPromptTemplateStore) UpdatePromptTemplate(_ context.Context, id string, fields map[string]string) (*PromptTemplateRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["display_name"]; ok {
+		rec.DisplayName = v
+	}
+	if v, ok := fields["description"]; ok {
+		rec.Description = v
+	}
+	if v, ok := fields["status"]; ok {
+		rec.Status = v
+	}
+	if v, ok := fields["template"]; ok {
+		rec.Template = v
+	}
+	s.records[id] = rec
+	return &rec, nil
+}
+
+func (s *devPromptTemplateStore) DeletePromptTemplate(_ context.Context, id string) error {
+	delete(s.records, id)
+	for i, oid := range s.orderedIDs {
+		if oid == id {
+			s.orderedIDs = append(s.orderedIDs[:i], s.orderedIDs[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
+// ToolProvider dev store
+
+type devToolProviderStore struct {
+	records    map[string]ToolProviderRecord
+	orderedIDs []string
+}
+
+func (s devToolProviderStore) GetToolProvider(_ context.Context, id string) (*ToolProviderRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &rec, nil
+}
+
+func (s devToolProviderStore) ListToolProviders(_ context.Context, page, limit int) ([]ToolProviderRecord, int, error) {
+	total := len(s.records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []ToolProviderRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	result := make([]ToolProviderRecord, 0, end-start)
+	for i := start; i < end; i++ {
+		result = append(result, s.records[s.orderedIDs[i]])
+	}
+	return result, total, nil
+}
+
+func (s devToolProviderStore) ListToolProvidersByTenant(_ context.Context, tenantID string, page, limit int) ([]ToolProviderRecord, int, error) {
+	filtered := make([]ToolProviderRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].TenantID == tenantID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateToolProviders(filtered, page, limit)
+}
+
+func (s devToolProviderStore) ListToolProvidersByWorkspace(_ context.Context, workspaceID string, page, limit int) ([]ToolProviderRecord, int, error) {
+	filtered := make([]ToolProviderRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].WorkspaceID == workspaceID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateToolProviders(filtered, page, limit)
+}
+
+func paginateToolProviders(records []ToolProviderRecord, page, limit int) ([]ToolProviderRecord, int, error) {
+	total := len(records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []ToolProviderRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	return records[start:end], total, nil
+}
+
+func (s *devToolProviderStore) CreateToolProvider(_ context.Context, tp ToolProviderRecord) error {
+	if _, exists := s.records[tp.ID]; exists {
+		return ErrConflict
+	}
+	s.records[tp.ID] = tp
+	s.orderedIDs = append(s.orderedIDs, tp.ID)
+	return nil
+}
+
+func (s *devToolProviderStore) UpdateToolProvider(_ context.Context, id string, fields map[string]string) (*ToolProviderRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["display_name"]; ok {
+		rec.DisplayName = v
+	}
+	if v, ok := fields["description"]; ok {
+		rec.Description = v
+	}
+	if v, ok := fields["status"]; ok {
+		rec.Status = v
+	}
+	if v, ok := fields["tool_type"]; ok {
+		rec.ToolType = v
+	}
+	if v, ok := fields["endpoint"]; ok {
+		rec.Endpoint = v
+	}
+	s.records[id] = rec
+	return &rec, nil
+}
+
+func (s *devToolProviderStore) DeleteToolProvider(_ context.Context, id string) error {
+	delete(s.records, id)
+	for i, oid := range s.orderedIDs {
+		if oid == id {
+			s.orderedIDs = append(s.orderedIDs[:i], s.orderedIDs[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
+// KnowledgeBase dev store
+
+type devKnowledgeBaseStore struct {
+	records    map[string]KnowledgeBaseRecord
+	orderedIDs []string
+}
+
+func (s devKnowledgeBaseStore) GetKnowledgeBase(_ context.Context, id string) (*KnowledgeBaseRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &rec, nil
+}
+
+func (s devKnowledgeBaseStore) ListKnowledgeBases(_ context.Context, page, limit int) ([]KnowledgeBaseRecord, int, error) {
+	total := len(s.records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []KnowledgeBaseRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	result := make([]KnowledgeBaseRecord, 0, end-start)
+	for i := start; i < end; i++ {
+		result = append(result, s.records[s.orderedIDs[i]])
+	}
+	return result, total, nil
+}
+
+func (s devKnowledgeBaseStore) ListKnowledgeBasesByTenant(_ context.Context, tenantID string, page, limit int) ([]KnowledgeBaseRecord, int, error) {
+	filtered := make([]KnowledgeBaseRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].TenantID == tenantID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateKnowledgeBases(filtered, page, limit)
+}
+
+func (s devKnowledgeBaseStore) ListKnowledgeBasesByWorkspace(_ context.Context, workspaceID string, page, limit int) ([]KnowledgeBaseRecord, int, error) {
+	filtered := make([]KnowledgeBaseRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].WorkspaceID == workspaceID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateKnowledgeBases(filtered, page, limit)
+}
+
+func paginateKnowledgeBases(records []KnowledgeBaseRecord, page, limit int) ([]KnowledgeBaseRecord, int, error) {
+	total := len(records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []KnowledgeBaseRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	return records[start:end], total, nil
+}
+
+func (s *devKnowledgeBaseStore) CreateKnowledgeBase(_ context.Context, kb KnowledgeBaseRecord) error {
+	if _, exists := s.records[kb.ID]; exists {
+		return ErrConflict
+	}
+	s.records[kb.ID] = kb
+	s.orderedIDs = append(s.orderedIDs, kb.ID)
+	return nil
+}
+
+func (s *devKnowledgeBaseStore) UpdateKnowledgeBase(_ context.Context, id string, fields map[string]string) (*KnowledgeBaseRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["display_name"]; ok {
+		rec.DisplayName = v
+	}
+	if v, ok := fields["description"]; ok {
+		rec.Description = v
+	}
+	if v, ok := fields["status"]; ok {
+		rec.Status = v
+	}
+	if v, ok := fields["source_type"]; ok {
+		rec.SourceType = v
+	}
+	if v, ok := fields["source_ref"]; ok {
+		rec.SourceRef = v
+	}
+	if v, ok := fields["embed_model"]; ok {
+		rec.EmbedModel = v
+	}
+	s.records[id] = rec
+	return &rec, nil
+}
+
+func (s *devKnowledgeBaseStore) DeleteKnowledgeBase(_ context.Context, id string) error {
+	delete(s.records, id)
+	for i, oid := range s.orderedIDs {
+		if oid == id {
+			s.orderedIDs = append(s.orderedIDs[:i], s.orderedIDs[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
+// Dataset dev store
+
+type devDatasetStore struct {
+	records    map[string]DatasetRecord
+	orderedIDs []string
+}
+
+func (s devDatasetStore) GetDataset(_ context.Context, id string) (*DatasetRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &rec, nil
+}
+
+func (s devDatasetStore) ListDatasets(_ context.Context, page, limit int) ([]DatasetRecord, int, error) {
+	total := len(s.records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []DatasetRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	result := make([]DatasetRecord, 0, end-start)
+	for i := start; i < end; i++ {
+		result = append(result, s.records[s.orderedIDs[i]])
+	}
+	return result, total, nil
+}
+
+func (s devDatasetStore) ListDatasetsByTenant(_ context.Context, tenantID string, page, limit int) ([]DatasetRecord, int, error) {
+	filtered := make([]DatasetRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].TenantID == tenantID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateDatasets(filtered, page, limit)
+}
+
+func (s devDatasetStore) ListDatasetsByWorkspace(_ context.Context, workspaceID string, page, limit int) ([]DatasetRecord, int, error) {
+	filtered := make([]DatasetRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].WorkspaceID == workspaceID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateDatasets(filtered, page, limit)
+}
+
+func paginateDatasets(records []DatasetRecord, page, limit int) ([]DatasetRecord, int, error) {
+	total := len(records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []DatasetRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	return records[start:end], total, nil
+}
+
+func (s *devDatasetStore) CreateDataset(_ context.Context, ds DatasetRecord) error {
+	if _, exists := s.records[ds.ID]; exists {
+		return ErrConflict
+	}
+	s.records[ds.ID] = ds
+	s.orderedIDs = append(s.orderedIDs, ds.ID)
+	return nil
+}
+
+func (s *devDatasetStore) UpdateDataset(_ context.Context, id string, fields map[string]string) (*DatasetRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["display_name"]; ok {
+		rec.DisplayName = v
+	}
+	if v, ok := fields["description"]; ok {
+		rec.Description = v
+	}
+	if v, ok := fields["status"]; ok {
+		rec.Status = v
+	}
+	if v, ok := fields["format"]; ok {
+		rec.Format = v
+	}
+	if v, ok := fields["source_ref"]; ok {
+		rec.SourceRef = v
+	}
+	s.records[id] = rec
+	return &rec, nil
+}
+
+func (s *devDatasetStore) DeleteDataset(_ context.Context, id string) error {
+	delete(s.records, id)
+	for i, oid := range s.orderedIDs {
+		if oid == id {
+			s.orderedIDs = append(s.orderedIDs[:i], s.orderedIDs[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
+// MCPServer dev store
+
+type devMCPServerStore struct {
+	records    map[string]MCPServerRecord
+	orderedIDs []string
+}
+
+func (s devMCPServerStore) GetMCPServer(_ context.Context, id string) (*MCPServerRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &rec, nil
+}
+
+func (s devMCPServerStore) ListMCPServers(_ context.Context, page, limit int) ([]MCPServerRecord, int, error) {
+	total := len(s.records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []MCPServerRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	result := make([]MCPServerRecord, 0, end-start)
+	for i := start; i < end; i++ {
+		result = append(result, s.records[s.orderedIDs[i]])
+	}
+	return result, total, nil
+}
+
+func (s devMCPServerStore) ListMCPServersByTenant(_ context.Context, tenantID string, page, limit int) ([]MCPServerRecord, int, error) {
+	filtered := make([]MCPServerRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].TenantID == tenantID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateMCPServers(filtered, page, limit)
+}
+
+func (s devMCPServerStore) ListMCPServersByWorkspace(_ context.Context, workspaceID string, page, limit int) ([]MCPServerRecord, int, error) {
+	filtered := make([]MCPServerRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].WorkspaceID == workspaceID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateMCPServers(filtered, page, limit)
+}
+
+func paginateMCPServers(records []MCPServerRecord, page, limit int) ([]MCPServerRecord, int, error) {
+	total := len(records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []MCPServerRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	return records[start:end], total, nil
+}
+
+func (s *devMCPServerStore) CreateMCPServer(_ context.Context, mcp MCPServerRecord) error {
+	if _, exists := s.records[mcp.ID]; exists {
+		return ErrConflict
+	}
+	s.records[mcp.ID] = mcp
+	s.orderedIDs = append(s.orderedIDs, mcp.ID)
+	return nil
+}
+
+func (s *devMCPServerStore) UpdateMCPServer(_ context.Context, id string, fields map[string]string) (*MCPServerRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["display_name"]; ok {
+		rec.DisplayName = v
+	}
+	if v, ok := fields["description"]; ok {
+		rec.Description = v
+	}
+	if v, ok := fields["status"]; ok {
+		rec.Status = v
+	}
+	if v, ok := fields["endpoint"]; ok {
+		rec.Endpoint = v
+	}
+	if v, ok := fields["transport"]; ok {
+		rec.Transport = v
+	}
+	if v, ok := fields["version"]; ok {
+		rec.Version = v
+	}
+	s.records[id] = rec
+	return &rec, nil
+}
+
+func (s *devMCPServerStore) DeleteMCPServer(_ context.Context, id string) error {
+	delete(s.records, id)
+	for i, oid := range s.orderedIDs {
+		if oid == id {
+			s.orderedIDs = append(s.orderedIDs[:i], s.orderedIDs[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
+// AgentPolicy dev store
+
+type devAgentPolicyStore struct {
+	records    map[string]AgentPolicyRecord
+	orderedIDs []string
+}
+
+func (s devAgentPolicyStore) GetAgentPolicy(_ context.Context, id string) (*AgentPolicyRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &rec, nil
+}
+
+func (s devAgentPolicyStore) ListAgentPolicies(_ context.Context, page, limit int) ([]AgentPolicyRecord, int, error) {
+	total := len(s.records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []AgentPolicyRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	result := make([]AgentPolicyRecord, 0, end-start)
+	for i := start; i < end; i++ {
+		result = append(result, s.records[s.orderedIDs[i]])
+	}
+	return result, total, nil
+}
+
+func (s devAgentPolicyStore) ListAgentPoliciesByTenant(_ context.Context, tenantID string, page, limit int) ([]AgentPolicyRecord, int, error) {
+	filtered := make([]AgentPolicyRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].TenantID == tenantID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateAgentPolicies(filtered, page, limit)
+}
+
+func (s devAgentPolicyStore) ListAgentPoliciesByWorkspace(_ context.Context, workspaceID string, page, limit int) ([]AgentPolicyRecord, int, error) {
+	filtered := make([]AgentPolicyRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].WorkspaceID == workspaceID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateAgentPolicies(filtered, page, limit)
+}
+
+func paginateAgentPolicies(records []AgentPolicyRecord, page, limit int) ([]AgentPolicyRecord, int, error) {
+	total := len(records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []AgentPolicyRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	return records[start:end], total, nil
+}
+
+func (s *devAgentPolicyStore) CreateAgentPolicy(_ context.Context, policy AgentPolicyRecord) error {
+	if _, exists := s.records[policy.ID]; exists {
+		return ErrConflict
+	}
+	s.records[policy.ID] = policy
+	s.orderedIDs = append(s.orderedIDs, policy.ID)
+	return nil
+}
+
+func (s *devAgentPolicyStore) UpdateAgentPolicy(_ context.Context, id string, fields map[string]string) (*AgentPolicyRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["display_name"]; ok {
+		rec.DisplayName = v
+	}
+	if v, ok := fields["description"]; ok {
+		rec.Description = v
+	}
+	if v, ok := fields["status"]; ok {
+		rec.Status = v
+	}
+	if v, ok := fields["policy_type"]; ok {
+		rec.PolicyType = v
+	}
+	if v, ok := fields["enforcement"]; ok {
+		rec.Enforcement = v
+	}
+	s.records[id] = rec
+	return &rec, nil
+}
+
+func (s *devAgentPolicyStore) DeleteAgentPolicy(_ context.Context, id string) error {
+	delete(s.records, id)
+	for i, oid := range s.orderedIDs {
+		if oid == id {
+			s.orderedIDs = append(s.orderedIDs[:i], s.orderedIDs[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
+// Skill dev store
+
+type devSkillStore struct {
+	records    map[string]SkillRecord
+	orderedIDs []string
+}
+
+func (s devSkillStore) GetSkill(_ context.Context, id string) (*SkillRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &rec, nil
+}
+
+func (s devSkillStore) ListSkills(_ context.Context, page, limit int) ([]SkillRecord, int, error) {
+	total := len(s.records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []SkillRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	result := make([]SkillRecord, 0, end-start)
+	for i := start; i < end; i++ {
+		result = append(result, s.records[s.orderedIDs[i]])
+	}
+	return result, total, nil
+}
+
+func (s devSkillStore) ListSkillsByTenant(_ context.Context, tenantID string, page, limit int) ([]SkillRecord, int, error) {
+	filtered := make([]SkillRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].TenantID == tenantID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateSkills(filtered, page, limit)
+}
+
+func (s devSkillStore) ListSkillsByWorkspace(_ context.Context, workspaceID string, page, limit int) ([]SkillRecord, int, error) {
+	filtered := make([]SkillRecord, 0)
+	for _, id := range s.orderedIDs {
+		if s.records[id].WorkspaceID == workspaceID {
+			filtered = append(filtered, s.records[id])
+		}
+	}
+	return paginateSkills(filtered, page, limit)
+}
+
+func paginateSkills(records []SkillRecord, page, limit int) ([]SkillRecord, int, error) {
+	total := len(records)
+	start := (page - 1) * limit
+	if start >= total {
+		return []SkillRecord{}, total, nil
+	}
+	end := min(start+limit, total)
+	return records[start:end], total, nil
+}
+
+func (s *devSkillStore) CreateSkill(_ context.Context, skill SkillRecord) error {
+	if _, exists := s.records[skill.ID]; exists {
+		return ErrConflict
+	}
+	s.records[skill.ID] = skill
+	s.orderedIDs = append(s.orderedIDs, skill.ID)
+	return nil
+}
+
+func (s *devSkillStore) UpdateSkill(_ context.Context, id string, fields map[string]string) (*SkillRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["display_name"]; ok {
+		rec.DisplayName = v
+	}
+	if v, ok := fields["description"]; ok {
+		rec.Description = v
+	}
+	if v, ok := fields["status"]; ok {
+		rec.Status = v
+	}
+	if v, ok := fields["skill_type"]; ok {
+		rec.SkillType = v
+	}
+	if v, ok := fields["entrypoint"]; ok {
+		rec.Entrypoint = v
+	}
+	s.records[id] = rec
+	return &rec, nil
+}
+
+func (s *devSkillStore) DeleteSkill(_ context.Context, id string) error {
+	delete(s.records, id)
+	for i, oid := range s.orderedIDs {
+		if oid == id {
+			s.orderedIDs = append(s.orderedIDs[:i], s.orderedIDs[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
 func NewFakeStores() Stores {
 	workspaces := &devWorkspaceStore{
 		records: map[string]WorkspaceRecord{
@@ -796,12 +1520,47 @@ func NewFakeStores() Stores {
 		},
 		orderedIDs: []string{"run_ehs_20260429_001", "run_guardrail_20260429_002", "run_enterprise_20260429_003"},
 	}
+	promptTemplates := &devPromptTemplateStore{
+		records:    map[string]PromptTemplateRecord{},
+		orderedIDs: []string{},
+	}
+	toolProviders := &devToolProviderStore{
+		records:    map[string]ToolProviderRecord{},
+		orderedIDs: []string{},
+	}
+	knowledgeBases := &devKnowledgeBaseStore{
+		records:    map[string]KnowledgeBaseRecord{},
+		orderedIDs: []string{},
+	}
+	datasets := &devDatasetStore{
+		records:    map[string]DatasetRecord{},
+		orderedIDs: []string{},
+	}
+	mcpServers := &devMCPServerStore{
+		records:    map[string]MCPServerRecord{},
+		orderedIDs: []string{},
+	}
+	agentPolicies := &devAgentPolicyStore{
+		records:    map[string]AgentPolicyRecord{},
+		orderedIDs: []string{},
+	}
+	skills := &devSkillStore{
+		records:    map[string]SkillRecord{},
+		orderedIDs: []string{},
+	}
 	return Stores{
-		Workspaces:  workspaces,
-		Tenants:     tenants,
-		Agents:      agents,
-		Evaluations: evaluations,
-		Providers:   providers,
-		Runs:        runs,
+		Workspaces:      workspaces,
+		Tenants:         tenants,
+		Agents:          agents,
+		Evaluations:     evaluations,
+		Providers:       providers,
+		Runs:            runs,
+		PromptTemplates: promptTemplates,
+		ToolProviders:   toolProviders,
+		KnowledgeBases:  knowledgeBases,
+		Datasets:        datasets,
+		MCPServers:      mcpServers,
+		AgentPolicies:   agentPolicies,
+		Skills:          skills,
 	}
 }

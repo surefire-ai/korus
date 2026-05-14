@@ -26,6 +26,7 @@ import { GraphPreview } from "@/components/studio/GraphPreview";
 import { WorkflowCanvas } from "@/components/studio/flow/WorkflowCanvas";
 import { Input } from "@/components/shared/Input";
 import { useToast, ToastContainer } from "@/components/shared/Toast";
+import { CheckCircle2, XCircle, Save, Rocket } from "lucide-react";
 
 type TabKey = "pattern" | "models" | "preview";
 
@@ -263,12 +264,6 @@ export function AgentStudioPage() {
 
   const isWorkflow = spec.pattern?.type === "workflow";
 
-  const tabVariants: Record<TabKey, "primary" | "secondary"> = {
-    pattern: activeTab === "pattern" ? "primary" : "secondary",
-    models: activeTab === "models" ? "primary" : "secondary",
-    preview: activeTab === "preview" ? "primary" : "secondary",
-  };
-
   return (
     <div>
       <PageHeader
@@ -277,44 +272,58 @@ export function AgentStudioPage() {
       />
 
       {/* Toolbar */}
-      <div className="surface-panel mb-6 flex flex-col gap-4 rounded-lg px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
-          <Button variant={tabVariants.pattern} onClick={() => setActiveTab("pattern")}>
-            {isWorkflow ? t("studio.tabs.workflow") : t("studio.tabs.pattern")}
-          </Button>
-          <Button variant={tabVariants.models} onClick={() => setActiveTab("models")}>
-            {t("studio.tabs.models")}
-          </Button>
-          <Button variant={tabVariants.preview} onClick={() => setActiveTab("preview")}>
-            {t("studio.tabs.preview")}
-          </Button>
+      <div className="mb-6 flex flex-col gap-4 rounded-xl border border-zinc-200/80 bg-white/80 px-5 py-3 shadow-sm backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+        {/* Tabs */}
+        <div className="flex gap-1 rounded-lg bg-zinc-100/80 p-1">
+          {(["pattern", "models", "preview"] as TabKey[]).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
+                activeTab === tab
+                  ? "bg-white text-zinc-900 shadow-sm"
+                  : "text-zinc-500 hover:text-zinc-700"
+              }`}
+            >
+              {tab === "pattern" ? (isWorkflow ? t("studio.tabs.workflow") : t("studio.tabs.pattern")) : t(`studio.tabs.${tab}`)}
+            </button>
+          ))}
         </div>
+
+        {/* Actions */}
         <div className="flex items-center gap-2">
           {saveStatus === "saved" && !publishResult && (
-            <span className="save-pulse bg-emerald-50 text-emerald-700 rounded-full px-2 py-0.5 text-xs">
+            <span className="save-pulse inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700">
+              <CheckCircle2 className="h-3 w-3" />
               {t("studio.saved")}
             </span>
           )}
           {publishResult?.ok && (
-            <span className="save-pulse bg-emerald-50 text-emerald-700 rounded-full px-2 py-0.5 text-xs">
+            <span className="save-pulse inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700">
+              <CheckCircle2 className="h-3 w-3" />
               {t("studio.published")} {publishResult.revision && `· ${publishResult.revision.slice(0, 8)}`}
             </span>
           )}
           {publishResult && !publishResult.ok && publishResult.errors && (
-            <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700">
+              <XCircle className="h-3 w-3" />
               {t("studio.compileError")} · {publishResult.errors.length}
             </span>
           )}
-          <Button variant="secondary" onClick={() => navigate(`/tenants/${tenantId}/agents/${agentId}`)}>
+          <div className="h-5 w-px bg-zinc-200" />
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/tenants/${tenantId}/agents/${agentId}`)}>
             {t("studio.cancel")}
           </Button>
-          <Button variant="secondary" onClick={handleSave} disabled={saveStatus === "saving" || saveStatus === "saved"}>
+          <Button variant="secondary" size="sm" onClick={handleSave} disabled={saveStatus === "saving" || saveStatus === "saved"}>
+            <Save className="mr-1.5 h-3.5 w-3.5" />
             {saveStatus === "saving" && t("studio.saving")}
-            {saveStatus === "saved" && publishResult ? t("studio.saved") : t("studio.saved")}
+            {saveStatus === "saved" && t("studio.saved")}
             {saveStatus === "error" && !publishResult && t("studio.saveError")}
             {saveStatus === "idle" && t("studio.save")}
           </Button>
-          <Button onClick={handleSaveAndPublish} disabled={saveStatus === "saving" || (saveStatus === "saved" && publishResult?.ok)}>
+          <Button size="sm" onClick={handleSaveAndPublish} disabled={saveStatus === "saving" || (saveStatus === "saved" && publishResult?.ok)}>
+            <Rocket className="mr-1.5 h-3.5 w-3.5" />
             {saveStatus === "saving" && t("studio.publishing")}
             {saveStatus === "saved" && publishResult?.ok && t("studio.published")}
             {saveStatus === "error" && publishResult && !publishResult.ok && t("studio.publishError")}
@@ -325,18 +334,13 @@ export function AgentStudioPage() {
 
       {/* Compile errors */}
       {publishResult && !publishResult.ok && publishResult.errors && publishResult.errors.length > 0 && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="mb-2 text-sm font-medium text-red-800">{t("studio.compileErrors")}</p>
-          <ul className="list-inside list-disc space-y-1 text-sm text-red-700">
-            {publishResult.errors.map((err, i) => (
-              <li key={i}>{err}</li>
-            ))}
-          </ul>
+        <div className="mb-6">
+          <ErrorAlert message={`${t("studio.compileErrors")}: ${publishResult.errors.join("; ")}`} />
         </div>
       )}
 
       {/* Tab Content */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-6">
+      <div className="rounded-xl border border-zinc-200/80 bg-white p-6 shadow-sm">
         {activeTab === "pattern" && (
           <div key="pattern" className="tab-content-enter">
             <PatternSelector selected={spec.pattern?.type ?? "react"} onSelect={handlePatternSelect} />

@@ -1,6 +1,7 @@
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/shared/Button";
 import { Card } from "@/components/shared/Card";
+import { Input } from "@/components/shared/Input";
 
 interface BindingPanelProps {
   title: string;
@@ -93,8 +94,7 @@ export function StringArrayBindingPanel({
       onAdd={() => onChange([...items, ""])}
       onRemove={(index) => onChange(items.filter((_, i) => i !== index))}
       renderItem={(item, index) => (
-        <input
-          className="block w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-950 placeholder-zinc-400 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20"
+        <Input
           value={item as string}
           placeholder={placeholder}
           onChange={(e) => {

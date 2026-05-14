@@ -119,6 +119,11 @@
     "emptyDescription": "工作区中创建的 Agent 会显示在这里。",
     "detailSubtitle": "Agent 配置、运行时与修订历史",
     "notFound": "未找到 Agent",
+    "createTitle": "创建 Agent",
+    "createSubtitle": "为此工作区添加新的 Agent",
+    "createButton": "创建 Agent",
+    "createError": "创建 Agent 失败",
+    "newButton": "新建 Agent",
     "fields": {
       "id": "ID",
       "slug": "标识",
@@ -198,7 +203,8 @@
       "startedAt": "开始时间",
       "completedAt": "完成时间",
       "summary": "摘要",
-      "traceRef": "Trace 引用"
+      "traceRef": "Trace 引用",
+      "duration": "耗时"
     }
   },
   "provider": {

@@ -33,8 +33,8 @@ export function NodePalette({ onAddNode }: NodePaletteProps) {
   };
 
   return (
-    <div className="panel-slide-in w-52 shrink-0 border-r border-zinc-200 bg-zinc-100/60 overflow-y-auto">
-      <div className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-100/95 backdrop-blur-sm px-3 py-2.5">
+    <div className="panel-slide-in w-56 shrink-0 border-r border-zinc-200/80 bg-gradient-to-b from-zinc-50/80 to-white overflow-y-auto">
+      <div className="sticky top-0 z-10 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md px-4 py-3">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
           {t("studio.workflow.palette")}
         </h4>
@@ -43,13 +43,13 @@ export function NodePalette({ onAddNode }: NodePaletteProps) {
         </p>
       </div>
 
-      <div className="px-3 pt-2.5 pb-1">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400 mb-1.5">
+      <div className="px-4 pt-3 pb-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
           {t("studio.workflow.components")}
         </p>
       </div>
 
-      <div className="space-y-1.5 px-3 pb-3">
+      <div className="space-y-1.5 px-4 pb-3">
         {items.map((item) => {
           const Icon = item.icon;
           return (
@@ -59,15 +59,15 @@ export function NodePalette({ onAddNode }: NodePaletteProps) {
               draggable
               onDragStart={(e) => handleDragStart(e, item.kind)}
               onClick={() => onAddNode(item.kind)}
-              className={`flex w-full items-center gap-2.5 rounded-lg border ${item.border} ${item.bg} px-3 py-2.5 text-left text-sm transition-all hover:shadow-sm hover:scale-[1.01] active:scale-[0.98] cursor-grab active:cursor-grabbing hover:border-dashed`}
+              className={`flex w-full items-center gap-2.5 rounded-lg border ${item.border} ${item.bg} px-3 py-2.5 text-left text-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98] cursor-grab active:cursor-grabbing hover:border-dashed`}
               title={t("studio.workflow.dragToAdd")}
             >
               <div className={`flex h-7 w-7 items-center justify-center rounded-md ${item.bg}`}>
                 <Icon className={`h-4 w-4 ${item.color}`} strokeWidth={2} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="font-medium text-zinc-700">{item.label}</span>
-                <p className="text-[10px] text-zinc-400">
+                <p className="text-[10px] text-zinc-400 truncate">
                   {t(`studio.workflow.kindDesc.${item.kind}`)}
                 </p>
               </div>
@@ -77,12 +77,12 @@ export function NodePalette({ onAddNode }: NodePaletteProps) {
       </div>
 
       {/* Quick tips */}
-      <div className="border-t border-zinc-200 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400 mb-1">{t("studio.workflow.tips")}</p>
-        <ul className="space-y-0.5 text-[10px] text-zinc-400">
-          <li>• {t("studio.workflow.tipClick")}</li>
-          <li>• {t("studio.workflow.tipDrag")}</li>
-          <li>• {t("studio.workflow.tipConnect")}</li>
+      <div className="border-t border-zinc-200/80 px-4 py-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">{t("studio.workflow.tips")}</p>
+        <ul className="space-y-1 text-[10px] leading-4 text-zinc-400">
+          <li className="flex items-start gap-1.5"><span className="text-zinc-300">•</span> {t("studio.workflow.tipClick")}</li>
+          <li className="flex items-start gap-1.5"><span className="text-zinc-300">•</span> {t("studio.workflow.tipDrag")}</li>
+          <li className="flex items-start gap-1.5"><span className="text-zinc-300">•</span> {t("studio.workflow.tipConnect")}</li>
         </ul>
       </div>
     </div>

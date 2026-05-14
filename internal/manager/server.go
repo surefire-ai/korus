@@ -304,6 +304,312 @@ type UpdateRunRequest struct {
 	TraceRef    *string `json:"traceRef,omitempty"`
 }
 
+// PromptTemplate types
+
+type PromptTemplateResponse struct {
+	ID          string   `json:"id"`
+	TenantID    string   `json:"tenantId"`
+	WorkspaceID string   `json:"workspaceId"`
+	Slug        string   `json:"slug"`
+	DisplayName string   `json:"displayName"`
+	Description string   `json:"description,omitempty"`
+	Status      string   `json:"status"`
+	Template    string   `json:"template,omitempty"`
+	Variables   []string `json:"variables,omitempty"`
+}
+
+type PaginatedPromptTemplatesResponse struct {
+	Templates []PromptTemplateResponse `json:"templates"`
+	Page      int                      `json:"page"`
+	Limit     int                      `json:"limit"`
+	Total     int                      `json:"total"`
+}
+
+type CreatePromptTemplateRequest struct {
+	ID          string   `json:"id"`
+	TenantID    string   `json:"tenantId"`
+	WorkspaceID string   `json:"workspaceId"`
+	Slug        string   `json:"slug"`
+	DisplayName string   `json:"displayName"`
+	Description string   `json:"description,omitempty"`
+	Status      string   `json:"status,omitempty"`
+	Template    string   `json:"template,omitempty"`
+	Variables   []string `json:"variables,omitempty"`
+}
+
+type UpdatePromptTemplateRequest struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Status      *string `json:"status,omitempty"`
+	Template    *string `json:"template,omitempty"`
+}
+
+// ToolProvider types
+
+type ToolProviderResponse struct {
+	ID          string                 `json:"id"`
+	TenantID    string                 `json:"tenantId"`
+	WorkspaceID string                 `json:"workspaceId"`
+	Slug        string                 `json:"slug"`
+	DisplayName string                 `json:"displayName"`
+	Description string                 `json:"description,omitempty"`
+	Status      string                 `json:"status"`
+	ToolType    string                 `json:"toolType,omitempty"`
+	Endpoint    string                 `json:"endpoint,omitempty"`
+	Config      map[string]interface{} `json:"config,omitempty"`
+}
+
+type PaginatedToolProvidersResponse struct {
+	Tools []ToolProviderResponse `json:"tools"`
+	Page  int                    `json:"page"`
+	Limit int                    `json:"limit"`
+	Total int                    `json:"total"`
+}
+
+type CreateToolProviderRequest struct {
+	ID          string                 `json:"id"`
+	TenantID    string                 `json:"tenantId"`
+	WorkspaceID string                 `json:"workspaceId"`
+	Slug        string                 `json:"slug"`
+	DisplayName string                 `json:"displayName"`
+	Description string                 `json:"description,omitempty"`
+	Status      string                 `json:"status,omitempty"`
+	ToolType    string                 `json:"toolType,omitempty"`
+	Endpoint    string                 `json:"endpoint,omitempty"`
+	Config      map[string]interface{} `json:"config,omitempty"`
+}
+
+type UpdateToolProviderRequest struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Status      *string `json:"status,omitempty"`
+	ToolType    *string `json:"toolType,omitempty"`
+	Endpoint    *string `json:"endpoint,omitempty"`
+}
+
+// KnowledgeBase types
+
+type KnowledgeBaseResponse struct {
+	ID           string `json:"id"`
+	TenantID     string `json:"tenantId"`
+	WorkspaceID  string `json:"workspaceId"`
+	Slug         string `json:"slug"`
+	DisplayName  string `json:"displayName"`
+	Description  string `json:"description,omitempty"`
+	Status       string `json:"status"`
+	SourceType   string `json:"sourceType,omitempty"`
+	SourceRef    string `json:"sourceRef,omitempty"`
+	EmbedModel   string `json:"embedModel,omitempty"`
+	ChunkSize    int    `json:"chunkSize,omitempty"`
+	ChunkOverlap int    `json:"chunkOverlap,omitempty"`
+}
+
+type PaginatedKnowledgeBasesResponse struct {
+	Bases []KnowledgeBaseResponse `json:"bases"`
+	Page  int                     `json:"page"`
+	Limit int                     `json:"limit"`
+	Total int                     `json:"total"`
+}
+
+type CreateKnowledgeBaseRequest struct {
+	ID           string `json:"id"`
+	TenantID     string `json:"tenantId"`
+	WorkspaceID  string `json:"workspaceId"`
+	Slug         string `json:"slug"`
+	DisplayName  string `json:"displayName"`
+	Description  string `json:"description,omitempty"`
+	Status       string `json:"status,omitempty"`
+	SourceType   string `json:"sourceType,omitempty"`
+	SourceRef    string `json:"sourceRef,omitempty"`
+	EmbedModel   string `json:"embedModel,omitempty"`
+	ChunkSize    int    `json:"chunkSize,omitempty"`
+	ChunkOverlap int    `json:"chunkOverlap,omitempty"`
+}
+
+type UpdateKnowledgeBaseRequest struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Status      *string `json:"status,omitempty"`
+	SourceType  *string `json:"sourceType,omitempty"`
+	SourceRef   *string `json:"sourceRef,omitempty"`
+	EmbedModel  *string `json:"embedModel,omitempty"`
+}
+
+// Dataset types
+
+type DatasetResponse struct {
+	ID          string   `json:"id"`
+	TenantID    string   `json:"tenantId"`
+	WorkspaceID string   `json:"workspaceId"`
+	Slug        string   `json:"slug"`
+	DisplayName string   `json:"displayName"`
+	Description string   `json:"description,omitempty"`
+	Status      string   `json:"status"`
+	Format      string   `json:"format,omitempty"`
+	SourceRef   string   `json:"sourceRef,omitempty"`
+	RowCount    int      `json:"rowCount,omitempty"`
+	Columns     []string `json:"columns,omitempty"`
+}
+
+type PaginatedDatasetsResponse struct {
+	Datasets []DatasetResponse `json:"datasets"`
+	Page     int               `json:"page"`
+	Limit    int               `json:"limit"`
+	Total    int               `json:"total"`
+}
+
+type CreateDatasetRequest struct {
+	ID          string   `json:"id"`
+	TenantID    string   `json:"tenantId"`
+	WorkspaceID string   `json:"workspaceId"`
+	Slug        string   `json:"slug"`
+	DisplayName string   `json:"displayName"`
+	Description string   `json:"description,omitempty"`
+	Status      string   `json:"status,omitempty"`
+	Format      string   `json:"format,omitempty"`
+	SourceRef   string   `json:"sourceRef,omitempty"`
+	RowCount    int      `json:"rowCount,omitempty"`
+	Columns     []string `json:"columns,omitempty"`
+}
+
+type UpdateDatasetRequest struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Status      *string `json:"status,omitempty"`
+	Format      *string `json:"format,omitempty"`
+	SourceRef   *string `json:"sourceRef,omitempty"`
+}
+
+// MCPServer types
+
+type MCPServerResponse struct {
+	ID          string `json:"id"`
+	TenantID    string `json:"tenantId"`
+	WorkspaceID string `json:"workspaceId"`
+	Slug        string `json:"slug"`
+	DisplayName string `json:"displayName"`
+	Description string `json:"description,omitempty"`
+	Status      string `json:"status"`
+	Endpoint    string `json:"endpoint,omitempty"`
+	Transport   string `json:"transport,omitempty"`
+	Version     string `json:"version,omitempty"`
+}
+
+type PaginatedMCPServersResponse struct {
+	Servers []MCPServerResponse `json:"servers"`
+	Page    int                 `json:"page"`
+	Limit   int                 `json:"limit"`
+	Total   int                 `json:"total"`
+}
+
+type CreateMCPServerRequest struct {
+	ID          string `json:"id"`
+	TenantID    string `json:"tenantId"`
+	WorkspaceID string `json:"workspaceId"`
+	Slug        string `json:"slug"`
+	DisplayName string `json:"displayName"`
+	Description string `json:"description,omitempty"`
+	Status      string `json:"status,omitempty"`
+	Endpoint    string `json:"endpoint,omitempty"`
+	Transport   string `json:"transport,omitempty"`
+	Version     string `json:"version,omitempty"`
+}
+
+type UpdateMCPServerRequest struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Status      *string `json:"status,omitempty"`
+	Endpoint    *string `json:"endpoint,omitempty"`
+	Transport   *string `json:"transport,omitempty"`
+	Version     *string `json:"version,omitempty"`
+}
+
+// AgentPolicy types
+
+type AgentPolicyResponse struct {
+	ID          string   `json:"id"`
+	TenantID    string   `json:"tenantId"`
+	WorkspaceID string   `json:"workspaceId"`
+	Slug        string   `json:"slug"`
+	DisplayName string   `json:"displayName"`
+	Description string   `json:"description,omitempty"`
+	Status      string   `json:"status"`
+	PolicyType  string   `json:"policyType,omitempty"`
+	Rules       []string `json:"rules,omitempty"`
+	Enforcement string   `json:"enforcement,omitempty"`
+}
+
+type PaginatedAgentPoliciesResponse struct {
+	Policies []AgentPolicyResponse `json:"policies"`
+	Page     int                   `json:"page"`
+	Limit    int                   `json:"limit"`
+	Total    int                   `json:"total"`
+}
+
+type CreateAgentPolicyRequest struct {
+	ID          string   `json:"id"`
+	TenantID    string   `json:"tenantId"`
+	WorkspaceID string   `json:"workspaceId"`
+	Slug        string   `json:"slug"`
+	DisplayName string   `json:"displayName"`
+	Description string   `json:"description,omitempty"`
+	Status      string   `json:"status,omitempty"`
+	PolicyType  string   `json:"policyType,omitempty"`
+	Rules       []string `json:"rules,omitempty"`
+	Enforcement string   `json:"enforcement,omitempty"`
+}
+
+type UpdateAgentPolicyRequest struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Status      *string `json:"status,omitempty"`
+	PolicyType  *string `json:"policyType,omitempty"`
+	Enforcement *string `json:"enforcement,omitempty"`
+}
+
+// Skill types
+
+type SkillResponse struct {
+	ID          string                 `json:"id"`
+	TenantID    string                 `json:"tenantId"`
+	WorkspaceID string                 `json:"workspaceId"`
+	Slug        string                 `json:"slug"`
+	DisplayName string                 `json:"displayName"`
+	Description string                 `json:"description,omitempty"`
+	Status      string                 `json:"status"`
+	SkillType   string                 `json:"skillType,omitempty"`
+	Entrypoint  string                 `json:"entrypoint,omitempty"`
+	Config      map[string]interface{} `json:"config,omitempty"`
+}
+
+type PaginatedSkillsResponse struct {
+	Skills []SkillResponse `json:"skills"`
+	Page   int             `json:"page"`
+	Limit  int             `json:"limit"`
+	Total  int             `json:"total"`
+}
+
+type CreateSkillRequest struct {
+	ID          string                 `json:"id"`
+	TenantID    string                 `json:"tenantId"`
+	WorkspaceID string                 `json:"workspaceId"`
+	Slug        string                 `json:"slug"`
+	DisplayName string                 `json:"displayName"`
+	Description string                 `json:"description,omitempty"`
+	Status      string                 `json:"status,omitempty"`
+	SkillType   string                 `json:"skillType,omitempty"`
+	Entrypoint  string                 `json:"entrypoint,omitempty"`
+	Config      map[string]interface{} `json:"config,omitempty"`
+}
+
+type UpdateSkillRequest struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Status      *string `json:"status,omitempty"`
+	SkillType   *string `json:"skillType,omitempty"`
+	Entrypoint  *string `json:"entrypoint,omitempty"`
+}
+
 func (s Server) syncer() CRDSyncer {
 	if s.Syncer == nil {
 		return NoopCRDSyncer{}
@@ -379,6 +685,13 @@ func (s Server) Handler() http.Handler {
 	mux.HandleFunc("/api/v1/evaluations/", s.handleEvaluation)
 	mux.HandleFunc("/api/v1/providers/", s.handleProvider)
 	mux.HandleFunc("/api/v1/runs/", s.handleRun)
+	mux.HandleFunc("/api/v1/prompt-templates/", s.handlePromptTemplate)
+	mux.HandleFunc("/api/v1/tool-providers/", s.handleToolProvider)
+	mux.HandleFunc("/api/v1/knowledge-bases/", s.handleKnowledgeBase)
+	mux.HandleFunc("/api/v1/datasets/", s.handleDataset)
+	mux.HandleFunc("/api/v1/mcp-servers/", s.handleMCPServer)
+	mux.HandleFunc("/api/v1/agent-policies/", s.handleAgentPolicy)
+	mux.HandleFunc("/api/v1/skills/", s.handleSkill)
 	return corsMiddleware(mux)
 }
 
@@ -1767,6 +2080,1224 @@ func paginationFromQuery(r *http.Request) (page, limit int) {
 		}
 	}
 	return
+}
+
+// PromptTemplate handlers
+
+func (s Server) handlePromptTemplate(w http.ResponseWriter, r *http.Request) {
+	if s.Stores.PromptTemplates == nil {
+		writeError(w, http.StatusServiceUnavailable, "prompt template store is not configured")
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/prompt-templates/")
+	id = strings.TrimSpace(id)
+
+	if id == "" {
+		switch r.Method {
+		case http.MethodGet:
+			s.handleListPromptTemplates(w, r)
+		case http.MethodPost:
+			s.handleCreatePromptTemplate(w, r)
+		default:
+			writeError(w, http.StatusMethodNotAllowed, "method must be GET or POST")
+		}
+		return
+	}
+
+	if strings.Contains(id, "/") {
+		writeError(w, http.StatusNotFound, "prompt template not found")
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		s.handleGetPromptTemplate(w, r, id)
+	case http.MethodPatch:
+		s.handleUpdatePromptTemplate(w, r, id)
+	case http.MethodDelete:
+		s.handleDeletePromptTemplate(w, r, id)
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "method must be GET, PATCH, or DELETE")
+	}
+}
+
+func (s Server) handleGetPromptTemplate(w http.ResponseWriter, r *http.Request, id string) {
+	rec, err := s.Stores.PromptTemplates.GetPromptTemplate(r.Context(), id)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "prompt template not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, PromptTemplateResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, Template: rec.Template, Variables: rec.Variables,
+	})
+}
+
+func (s Server) handleListPromptTemplates(w http.ResponseWriter, r *http.Request) {
+	page, limit := paginationFromQuery(r)
+	tenantID := r.URL.Query().Get("tenantId")
+	workspaceID := r.URL.Query().Get("workspaceId")
+
+	var records []PromptTemplateRecord
+	var total int
+	var err error
+
+	if tenantID != "" {
+		records, total, err = s.Stores.PromptTemplates.ListPromptTemplatesByTenant(r.Context(), tenantID, page, limit)
+	} else if workspaceID != "" {
+		records, total, err = s.Stores.PromptTemplates.ListPromptTemplatesByWorkspace(r.Context(), workspaceID, page, limit)
+	} else {
+		records, total, err = s.Stores.PromptTemplates.ListPromptTemplates(r.Context(), page, limit)
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	resp := make([]PromptTemplateResponse, len(records))
+	for i, rec := range records {
+		resp[i] = PromptTemplateResponse{
+			ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+			Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+			Status: rec.Status, Template: rec.Template, Variables: rec.Variables,
+		}
+	}
+	writeJSON(w, http.StatusOK, PaginatedPromptTemplatesResponse{Templates: resp, Page: page, Limit: limit, Total: total})
+}
+
+func (s Server) handleCreatePromptTemplate(w http.ResponseWriter, r *http.Request) {
+	var req CreatePromptTemplateRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.ID == "" || req.TenantID == "" || req.WorkspaceID == "" || req.Slug == "" || req.DisplayName == "" {
+		writeError(w, http.StatusBadRequest, "id, tenantId, workspaceId, slug, and displayName are required")
+		return
+	}
+	rec := PromptTemplateRecord{
+		ID: req.ID, TenantID: req.TenantID, WorkspaceID: req.WorkspaceID,
+		Slug: req.Slug, DisplayName: req.DisplayName, Description: req.Description,
+		Status: req.Status, Template: req.Template, Variables: req.Variables,
+	}
+	if rec.Status == "" {
+		rec.Status = "draft"
+	}
+	if err := s.Stores.PromptTemplates.CreatePromptTemplate(r.Context(), rec); err != nil {
+		if err == ErrConflict {
+			writeError(w, http.StatusConflict, "prompt template already exists")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, PromptTemplateResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, Template: rec.Template, Variables: rec.Variables,
+	})
+}
+
+func (s Server) handleUpdatePromptTemplate(w http.ResponseWriter, r *http.Request, id string) {
+	var req UpdatePromptTemplateRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	fields := map[string]string{}
+	if req.DisplayName != nil {
+		fields["display_name"] = *req.DisplayName
+	}
+	if req.Description != nil {
+		fields["description"] = *req.Description
+	}
+	if req.Status != nil {
+		fields["status"] = *req.Status
+	}
+	if req.Template != nil {
+		fields["template"] = *req.Template
+	}
+	if len(fields) == 0 {
+		writeError(w, http.StatusBadRequest, "no fields to update")
+		return
+	}
+	rec, err := s.Stores.PromptTemplates.UpdatePromptTemplate(r.Context(), id, fields)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "prompt template not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, PromptTemplateResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, Template: rec.Template, Variables: rec.Variables,
+	})
+}
+
+func (s Server) handleDeletePromptTemplate(w http.ResponseWriter, r *http.Request, id string) {
+	if err := s.Stores.PromptTemplates.DeletePromptTemplate(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// ToolProvider handlers
+
+func (s Server) handleToolProvider(w http.ResponseWriter, r *http.Request) {
+	if s.Stores.ToolProviders == nil {
+		writeError(w, http.StatusServiceUnavailable, "tool provider store is not configured")
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/tool-providers/")
+	id = strings.TrimSpace(id)
+
+	if id == "" {
+		switch r.Method {
+		case http.MethodGet:
+			s.handleListToolProviders(w, r)
+		case http.MethodPost:
+			s.handleCreateToolProvider(w, r)
+		default:
+			writeError(w, http.StatusMethodNotAllowed, "method must be GET or POST")
+		}
+		return
+	}
+
+	if strings.Contains(id, "/") {
+		writeError(w, http.StatusNotFound, "tool provider not found")
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		s.handleGetToolProvider(w, r, id)
+	case http.MethodPatch:
+		s.handleUpdateToolProvider(w, r, id)
+	case http.MethodDelete:
+		s.handleDeleteToolProvider(w, r, id)
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "method must be GET, PATCH, or DELETE")
+	}
+}
+
+func (s Server) handleGetToolProvider(w http.ResponseWriter, r *http.Request, id string) {
+	rec, err := s.Stores.ToolProviders.GetToolProvider(r.Context(), id)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "tool provider not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, ToolProviderResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, ToolType: rec.ToolType, Endpoint: rec.Endpoint, Config: rec.Config,
+	})
+}
+
+func (s Server) handleListToolProviders(w http.ResponseWriter, r *http.Request) {
+	page, limit := paginationFromQuery(r)
+	tenantID := r.URL.Query().Get("tenantId")
+	workspaceID := r.URL.Query().Get("workspaceId")
+
+	var records []ToolProviderRecord
+	var total int
+	var err error
+
+	if tenantID != "" {
+		records, total, err = s.Stores.ToolProviders.ListToolProvidersByTenant(r.Context(), tenantID, page, limit)
+	} else if workspaceID != "" {
+		records, total, err = s.Stores.ToolProviders.ListToolProvidersByWorkspace(r.Context(), workspaceID, page, limit)
+	} else {
+		records, total, err = s.Stores.ToolProviders.ListToolProviders(r.Context(), page, limit)
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	resp := make([]ToolProviderResponse, len(records))
+	for i, rec := range records {
+		resp[i] = ToolProviderResponse{
+			ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+			Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+			Status: rec.Status, ToolType: rec.ToolType, Endpoint: rec.Endpoint, Config: rec.Config,
+		}
+	}
+	writeJSON(w, http.StatusOK, PaginatedToolProvidersResponse{Tools: resp, Page: page, Limit: limit, Total: total})
+}
+
+func (s Server) handleCreateToolProvider(w http.ResponseWriter, r *http.Request) {
+	var req CreateToolProviderRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.ID == "" || req.TenantID == "" || req.WorkspaceID == "" || req.Slug == "" || req.DisplayName == "" {
+		writeError(w, http.StatusBadRequest, "id, tenantId, workspaceId, slug, and displayName are required")
+		return
+	}
+	rec := ToolProviderRecord{
+		ID: req.ID, TenantID: req.TenantID, WorkspaceID: req.WorkspaceID,
+		Slug: req.Slug, DisplayName: req.DisplayName, Description: req.Description,
+		Status: req.Status, ToolType: req.ToolType, Endpoint: req.Endpoint, Config: req.Config,
+	}
+	if rec.Status == "" {
+		rec.Status = "active"
+	}
+	if err := s.Stores.ToolProviders.CreateToolProvider(r.Context(), rec); err != nil {
+		if err == ErrConflict {
+			writeError(w, http.StatusConflict, "tool provider already exists")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, ToolProviderResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, ToolType: rec.ToolType, Endpoint: rec.Endpoint, Config: rec.Config,
+	})
+}
+
+func (s Server) handleUpdateToolProvider(w http.ResponseWriter, r *http.Request, id string) {
+	var req UpdateToolProviderRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	fields := map[string]string{}
+	if req.DisplayName != nil {
+		fields["display_name"] = *req.DisplayName
+	}
+	if req.Description != nil {
+		fields["description"] = *req.Description
+	}
+	if req.Status != nil {
+		fields["status"] = *req.Status
+	}
+	if req.ToolType != nil {
+		fields["tool_type"] = *req.ToolType
+	}
+	if req.Endpoint != nil {
+		fields["endpoint"] = *req.Endpoint
+	}
+	if len(fields) == 0 {
+		writeError(w, http.StatusBadRequest, "no fields to update")
+		return
+	}
+	rec, err := s.Stores.ToolProviders.UpdateToolProvider(r.Context(), id, fields)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "tool provider not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, ToolProviderResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, ToolType: rec.ToolType, Endpoint: rec.Endpoint, Config: rec.Config,
+	})
+}
+
+func (s Server) handleDeleteToolProvider(w http.ResponseWriter, r *http.Request, id string) {
+	if err := s.Stores.ToolProviders.DeleteToolProvider(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// KnowledgeBase handlers
+
+func (s Server) handleKnowledgeBase(w http.ResponseWriter, r *http.Request) {
+	if s.Stores.KnowledgeBases == nil {
+		writeError(w, http.StatusServiceUnavailable, "knowledge base store is not configured")
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/knowledge-bases/")
+	id = strings.TrimSpace(id)
+
+	if id == "" {
+		switch r.Method {
+		case http.MethodGet:
+			s.handleListKnowledgeBases(w, r)
+		case http.MethodPost:
+			s.handleCreateKnowledgeBase(w, r)
+		default:
+			writeError(w, http.StatusMethodNotAllowed, "method must be GET or POST")
+		}
+		return
+	}
+
+	if strings.Contains(id, "/") {
+		writeError(w, http.StatusNotFound, "knowledge base not found")
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		s.handleGetKnowledgeBase(w, r, id)
+	case http.MethodPatch:
+		s.handleUpdateKnowledgeBase(w, r, id)
+	case http.MethodDelete:
+		s.handleDeleteKnowledgeBase(w, r, id)
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "method must be GET, PATCH, or DELETE")
+	}
+}
+
+func (s Server) handleGetKnowledgeBase(w http.ResponseWriter, r *http.Request, id string) {
+	rec, err := s.Stores.KnowledgeBases.GetKnowledgeBase(r.Context(), id)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "knowledge base not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, KnowledgeBaseResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, SourceType: rec.SourceType, SourceRef: rec.SourceRef,
+		EmbedModel: rec.EmbedModel, ChunkSize: rec.ChunkSize, ChunkOverlap: rec.ChunkOverlap,
+	})
+}
+
+func (s Server) handleListKnowledgeBases(w http.ResponseWriter, r *http.Request) {
+	page, limit := paginationFromQuery(r)
+	tenantID := r.URL.Query().Get("tenantId")
+	workspaceID := r.URL.Query().Get("workspaceId")
+
+	var records []KnowledgeBaseRecord
+	var total int
+	var err error
+
+	if tenantID != "" {
+		records, total, err = s.Stores.KnowledgeBases.ListKnowledgeBasesByTenant(r.Context(), tenantID, page, limit)
+	} else if workspaceID != "" {
+		records, total, err = s.Stores.KnowledgeBases.ListKnowledgeBasesByWorkspace(r.Context(), workspaceID, page, limit)
+	} else {
+		records, total, err = s.Stores.KnowledgeBases.ListKnowledgeBases(r.Context(), page, limit)
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	resp := make([]KnowledgeBaseResponse, len(records))
+	for i, rec := range records {
+		resp[i] = KnowledgeBaseResponse{
+			ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+			Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+			Status: rec.Status, SourceType: rec.SourceType, SourceRef: rec.SourceRef,
+			EmbedModel: rec.EmbedModel, ChunkSize: rec.ChunkSize, ChunkOverlap: rec.ChunkOverlap,
+		}
+	}
+	writeJSON(w, http.StatusOK, PaginatedKnowledgeBasesResponse{Bases: resp, Page: page, Limit: limit, Total: total})
+}
+
+func (s Server) handleCreateKnowledgeBase(w http.ResponseWriter, r *http.Request) {
+	var req CreateKnowledgeBaseRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.ID == "" || req.TenantID == "" || req.WorkspaceID == "" || req.Slug == "" || req.DisplayName == "" {
+		writeError(w, http.StatusBadRequest, "id, tenantId, workspaceId, slug, and displayName are required")
+		return
+	}
+	rec := KnowledgeBaseRecord{
+		ID: req.ID, TenantID: req.TenantID, WorkspaceID: req.WorkspaceID,
+		Slug: req.Slug, DisplayName: req.DisplayName, Description: req.Description,
+		Status: req.Status, SourceType: req.SourceType, SourceRef: req.SourceRef,
+		EmbedModel: req.EmbedModel, ChunkSize: req.ChunkSize, ChunkOverlap: req.ChunkOverlap,
+	}
+	if rec.Status == "" {
+		rec.Status = "active"
+	}
+	if err := s.Stores.KnowledgeBases.CreateKnowledgeBase(r.Context(), rec); err != nil {
+		if err == ErrConflict {
+			writeError(w, http.StatusConflict, "knowledge base already exists")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, KnowledgeBaseResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, SourceType: rec.SourceType, SourceRef: rec.SourceRef,
+		EmbedModel: rec.EmbedModel, ChunkSize: rec.ChunkSize, ChunkOverlap: rec.ChunkOverlap,
+	})
+}
+
+func (s Server) handleUpdateKnowledgeBase(w http.ResponseWriter, r *http.Request, id string) {
+	var req UpdateKnowledgeBaseRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	fields := map[string]string{}
+	if req.DisplayName != nil {
+		fields["display_name"] = *req.DisplayName
+	}
+	if req.Description != nil {
+		fields["description"] = *req.Description
+	}
+	if req.Status != nil {
+		fields["status"] = *req.Status
+	}
+	if req.SourceType != nil {
+		fields["source_type"] = *req.SourceType
+	}
+	if req.SourceRef != nil {
+		fields["source_ref"] = *req.SourceRef
+	}
+	if req.EmbedModel != nil {
+		fields["embed_model"] = *req.EmbedModel
+	}
+	if len(fields) == 0 {
+		writeError(w, http.StatusBadRequest, "no fields to update")
+		return
+	}
+	rec, err := s.Stores.KnowledgeBases.UpdateKnowledgeBase(r.Context(), id, fields)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "knowledge base not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, KnowledgeBaseResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, SourceType: rec.SourceType, SourceRef: rec.SourceRef,
+		EmbedModel: rec.EmbedModel, ChunkSize: rec.ChunkSize, ChunkOverlap: rec.ChunkOverlap,
+	})
+}
+
+func (s Server) handleDeleteKnowledgeBase(w http.ResponseWriter, r *http.Request, id string) {
+	if err := s.Stores.KnowledgeBases.DeleteKnowledgeBase(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// Dataset handlers
+
+func (s Server) handleDataset(w http.ResponseWriter, r *http.Request) {
+	if s.Stores.Datasets == nil {
+		writeError(w, http.StatusServiceUnavailable, "dataset store is not configured")
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/datasets/")
+	id = strings.TrimSpace(id)
+
+	if id == "" {
+		switch r.Method {
+		case http.MethodGet:
+			s.handleListDatasets(w, r)
+		case http.MethodPost:
+			s.handleCreateDataset(w, r)
+		default:
+			writeError(w, http.StatusMethodNotAllowed, "method must be GET or POST")
+		}
+		return
+	}
+
+	if strings.Contains(id, "/") {
+		writeError(w, http.StatusNotFound, "dataset not found")
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		s.handleGetDataset(w, r, id)
+	case http.MethodPatch:
+		s.handleUpdateDataset(w, r, id)
+	case http.MethodDelete:
+		s.handleDeleteDataset(w, r, id)
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "method must be GET, PATCH, or DELETE")
+	}
+}
+
+func (s Server) handleGetDataset(w http.ResponseWriter, r *http.Request, id string) {
+	rec, err := s.Stores.Datasets.GetDataset(r.Context(), id)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "dataset not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, DatasetResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, Format: rec.Format, SourceRef: rec.SourceRef,
+		RowCount: rec.RowCount, Columns: rec.Columns,
+	})
+}
+
+func (s Server) handleListDatasets(w http.ResponseWriter, r *http.Request) {
+	page, limit := paginationFromQuery(r)
+	tenantID := r.URL.Query().Get("tenantId")
+	workspaceID := r.URL.Query().Get("workspaceId")
+
+	var records []DatasetRecord
+	var total int
+	var err error
+
+	if tenantID != "" {
+		records, total, err = s.Stores.Datasets.ListDatasetsByTenant(r.Context(), tenantID, page, limit)
+	} else if workspaceID != "" {
+		records, total, err = s.Stores.Datasets.ListDatasetsByWorkspace(r.Context(), workspaceID, page, limit)
+	} else {
+		records, total, err = s.Stores.Datasets.ListDatasets(r.Context(), page, limit)
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	resp := make([]DatasetResponse, len(records))
+	for i, rec := range records {
+		resp[i] = DatasetResponse{
+			ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+			Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+			Status: rec.Status, Format: rec.Format, SourceRef: rec.SourceRef,
+			RowCount: rec.RowCount, Columns: rec.Columns,
+		}
+	}
+	writeJSON(w, http.StatusOK, PaginatedDatasetsResponse{Datasets: resp, Page: page, Limit: limit, Total: total})
+}
+
+func (s Server) handleCreateDataset(w http.ResponseWriter, r *http.Request) {
+	var req CreateDatasetRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.ID == "" || req.TenantID == "" || req.WorkspaceID == "" || req.Slug == "" || req.DisplayName == "" {
+		writeError(w, http.StatusBadRequest, "id, tenantId, workspaceId, slug, and displayName are required")
+		return
+	}
+	rec := DatasetRecord{
+		ID: req.ID, TenantID: req.TenantID, WorkspaceID: req.WorkspaceID,
+		Slug: req.Slug, DisplayName: req.DisplayName, Description: req.Description,
+		Status: req.Status, Format: req.Format, SourceRef: req.SourceRef,
+		RowCount: req.RowCount, Columns: req.Columns,
+	}
+	if rec.Status == "" {
+		rec.Status = "active"
+	}
+	if err := s.Stores.Datasets.CreateDataset(r.Context(), rec); err != nil {
+		if err == ErrConflict {
+			writeError(w, http.StatusConflict, "dataset already exists")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, DatasetResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, Format: rec.Format, SourceRef: rec.SourceRef,
+		RowCount: rec.RowCount, Columns: rec.Columns,
+	})
+}
+
+func (s Server) handleUpdateDataset(w http.ResponseWriter, r *http.Request, id string) {
+	var req UpdateDatasetRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	fields := map[string]string{}
+	if req.DisplayName != nil {
+		fields["display_name"] = *req.DisplayName
+	}
+	if req.Description != nil {
+		fields["description"] = *req.Description
+	}
+	if req.Status != nil {
+		fields["status"] = *req.Status
+	}
+	if req.Format != nil {
+		fields["format"] = *req.Format
+	}
+	if req.SourceRef != nil {
+		fields["source_ref"] = *req.SourceRef
+	}
+	if len(fields) == 0 {
+		writeError(w, http.StatusBadRequest, "no fields to update")
+		return
+	}
+	rec, err := s.Stores.Datasets.UpdateDataset(r.Context(), id, fields)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "dataset not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, DatasetResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, Format: rec.Format, SourceRef: rec.SourceRef,
+		RowCount: rec.RowCount, Columns: rec.Columns,
+	})
+}
+
+func (s Server) handleDeleteDataset(w http.ResponseWriter, r *http.Request, id string) {
+	if err := s.Stores.Datasets.DeleteDataset(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// MCPServer handlers
+
+func (s Server) handleMCPServer(w http.ResponseWriter, r *http.Request) {
+	if s.Stores.MCPServers == nil {
+		writeError(w, http.StatusServiceUnavailable, "mcp server store is not configured")
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/mcp-servers/")
+	id = strings.TrimSpace(id)
+
+	if id == "" {
+		switch r.Method {
+		case http.MethodGet:
+			s.handleListMCPServers(w, r)
+		case http.MethodPost:
+			s.handleCreateMCPServer(w, r)
+		default:
+			writeError(w, http.StatusMethodNotAllowed, "method must be GET or POST")
+		}
+		return
+	}
+
+	if strings.Contains(id, "/") {
+		writeError(w, http.StatusNotFound, "mcp server not found")
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		s.handleGetMCPServer(w, r, id)
+	case http.MethodPatch:
+		s.handleUpdateMCPServer(w, r, id)
+	case http.MethodDelete:
+		s.handleDeleteMCPServer(w, r, id)
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "method must be GET, PATCH, or DELETE")
+	}
+}
+
+func (s Server) handleGetMCPServer(w http.ResponseWriter, r *http.Request, id string) {
+	rec, err := s.Stores.MCPServers.GetMCPServer(r.Context(), id)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "mcp server not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, MCPServerResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, Endpoint: rec.Endpoint, Transport: rec.Transport,
+		Version: rec.Version,
+	})
+}
+
+func (s Server) handleListMCPServers(w http.ResponseWriter, r *http.Request) {
+	page, limit := paginationFromQuery(r)
+	tenantID := r.URL.Query().Get("tenantId")
+	workspaceID := r.URL.Query().Get("workspaceId")
+
+	var records []MCPServerRecord
+	var total int
+	var err error
+
+	if tenantID != "" {
+		records, total, err = s.Stores.MCPServers.ListMCPServersByTenant(r.Context(), tenantID, page, limit)
+	} else if workspaceID != "" {
+		records, total, err = s.Stores.MCPServers.ListMCPServersByWorkspace(r.Context(), workspaceID, page, limit)
+	} else {
+		records, total, err = s.Stores.MCPServers.ListMCPServers(r.Context(), page, limit)
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	resp := make([]MCPServerResponse, len(records))
+	for i, rec := range records {
+		resp[i] = MCPServerResponse{
+			ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+			Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+			Status: rec.Status, Endpoint: rec.Endpoint, Transport: rec.Transport,
+			Version: rec.Version,
+		}
+	}
+	writeJSON(w, http.StatusOK, PaginatedMCPServersResponse{Servers: resp, Page: page, Limit: limit, Total: total})
+}
+
+func (s Server) handleCreateMCPServer(w http.ResponseWriter, r *http.Request) {
+	var req CreateMCPServerRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.ID == "" || req.TenantID == "" || req.WorkspaceID == "" || req.Slug == "" || req.DisplayName == "" {
+		writeError(w, http.StatusBadRequest, "id, tenantId, workspaceId, slug, and displayName are required")
+		return
+	}
+	rec := MCPServerRecord{
+		ID: req.ID, TenantID: req.TenantID, WorkspaceID: req.WorkspaceID,
+		Slug: req.Slug, DisplayName: req.DisplayName, Description: req.Description,
+		Status: req.Status, Endpoint: req.Endpoint, Transport: req.Transport,
+		Version: req.Version,
+	}
+	if rec.Status == "" {
+		rec.Status = "active"
+	}
+	if err := s.Stores.MCPServers.CreateMCPServer(r.Context(), rec); err != nil {
+		if err == ErrConflict {
+			writeError(w, http.StatusConflict, "mcp server already exists")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, MCPServerResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, Endpoint: rec.Endpoint, Transport: rec.Transport,
+		Version: rec.Version,
+	})
+}
+
+func (s Server) handleUpdateMCPServer(w http.ResponseWriter, r *http.Request, id string) {
+	var req UpdateMCPServerRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	fields := map[string]string{}
+	if req.DisplayName != nil {
+		fields["display_name"] = *req.DisplayName
+	}
+	if req.Description != nil {
+		fields["description"] = *req.Description
+	}
+	if req.Status != nil {
+		fields["status"] = *req.Status
+	}
+	if req.Endpoint != nil {
+		fields["endpoint"] = *req.Endpoint
+	}
+	if req.Transport != nil {
+		fields["transport"] = *req.Transport
+	}
+	if req.Version != nil {
+		fields["version"] = *req.Version
+	}
+	if len(fields) == 0 {
+		writeError(w, http.StatusBadRequest, "no fields to update")
+		return
+	}
+	rec, err := s.Stores.MCPServers.UpdateMCPServer(r.Context(), id, fields)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "mcp server not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, MCPServerResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, Endpoint: rec.Endpoint, Transport: rec.Transport,
+		Version: rec.Version,
+	})
+}
+
+func (s Server) handleDeleteMCPServer(w http.ResponseWriter, r *http.Request, id string) {
+	if err := s.Stores.MCPServers.DeleteMCPServer(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// AgentPolicy handlers
+
+func (s Server) handleAgentPolicy(w http.ResponseWriter, r *http.Request) {
+	if s.Stores.AgentPolicies == nil {
+		writeError(w, http.StatusServiceUnavailable, "agent policy store is not configured")
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/agent-policies/")
+	id = strings.TrimSpace(id)
+
+	if id == "" {
+		switch r.Method {
+		case http.MethodGet:
+			s.handleListAgentPolicies(w, r)
+		case http.MethodPost:
+			s.handleCreateAgentPolicy(w, r)
+		default:
+			writeError(w, http.StatusMethodNotAllowed, "method must be GET or POST")
+		}
+		return
+	}
+
+	if strings.Contains(id, "/") {
+		writeError(w, http.StatusNotFound, "agent policy not found")
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		s.handleGetAgentPolicy(w, r, id)
+	case http.MethodPatch:
+		s.handleUpdateAgentPolicy(w, r, id)
+	case http.MethodDelete:
+		s.handleDeleteAgentPolicy(w, r, id)
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "method must be GET, PATCH, or DELETE")
+	}
+}
+
+func (s Server) handleGetAgentPolicy(w http.ResponseWriter, r *http.Request, id string) {
+	rec, err := s.Stores.AgentPolicies.GetAgentPolicy(r.Context(), id)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "agent policy not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, AgentPolicyResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, PolicyType: rec.PolicyType, Rules: rec.Rules,
+		Enforcement: rec.Enforcement,
+	})
+}
+
+func (s Server) handleListAgentPolicies(w http.ResponseWriter, r *http.Request) {
+	page, limit := paginationFromQuery(r)
+	tenantID := r.URL.Query().Get("tenantId")
+	workspaceID := r.URL.Query().Get("workspaceId")
+
+	var records []AgentPolicyRecord
+	var total int
+	var err error
+
+	if tenantID != "" {
+		records, total, err = s.Stores.AgentPolicies.ListAgentPoliciesByTenant(r.Context(), tenantID, page, limit)
+	} else if workspaceID != "" {
+		records, total, err = s.Stores.AgentPolicies.ListAgentPoliciesByWorkspace(r.Context(), workspaceID, page, limit)
+	} else {
+		records, total, err = s.Stores.AgentPolicies.ListAgentPolicies(r.Context(), page, limit)
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	resp := make([]AgentPolicyResponse, len(records))
+	for i, rec := range records {
+		resp[i] = AgentPolicyResponse{
+			ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+			Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+			Status: rec.Status, PolicyType: rec.PolicyType, Rules: rec.Rules,
+			Enforcement: rec.Enforcement,
+		}
+	}
+	writeJSON(w, http.StatusOK, PaginatedAgentPoliciesResponse{Policies: resp, Page: page, Limit: limit, Total: total})
+}
+
+func (s Server) handleCreateAgentPolicy(w http.ResponseWriter, r *http.Request) {
+	var req CreateAgentPolicyRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.ID == "" || req.TenantID == "" || req.WorkspaceID == "" || req.Slug == "" || req.DisplayName == "" {
+		writeError(w, http.StatusBadRequest, "id, tenantId, workspaceId, slug, and displayName are required")
+		return
+	}
+	rec := AgentPolicyRecord{
+		ID: req.ID, TenantID: req.TenantID, WorkspaceID: req.WorkspaceID,
+		Slug: req.Slug, DisplayName: req.DisplayName, Description: req.Description,
+		Status: req.Status, PolicyType: req.PolicyType, Rules: req.Rules,
+		Enforcement: req.Enforcement,
+	}
+	if rec.Status == "" {
+		rec.Status = "active"
+	}
+	if err := s.Stores.AgentPolicies.CreateAgentPolicy(r.Context(), rec); err != nil {
+		if err == ErrConflict {
+			writeError(w, http.StatusConflict, "agent policy already exists")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, AgentPolicyResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, PolicyType: rec.PolicyType, Rules: rec.Rules,
+		Enforcement: rec.Enforcement,
+	})
+}
+
+func (s Server) handleUpdateAgentPolicy(w http.ResponseWriter, r *http.Request, id string) {
+	var req UpdateAgentPolicyRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	fields := map[string]string{}
+	if req.DisplayName != nil {
+		fields["display_name"] = *req.DisplayName
+	}
+	if req.Description != nil {
+		fields["description"] = *req.Description
+	}
+	if req.Status != nil {
+		fields["status"] = *req.Status
+	}
+	if req.PolicyType != nil {
+		fields["policy_type"] = *req.PolicyType
+	}
+	if req.Enforcement != nil {
+		fields["enforcement"] = *req.Enforcement
+	}
+	if len(fields) == 0 {
+		writeError(w, http.StatusBadRequest, "no fields to update")
+		return
+	}
+	rec, err := s.Stores.AgentPolicies.UpdateAgentPolicy(r.Context(), id, fields)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "agent policy not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, AgentPolicyResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, PolicyType: rec.PolicyType, Rules: rec.Rules,
+		Enforcement: rec.Enforcement,
+	})
+}
+
+func (s Server) handleDeleteAgentPolicy(w http.ResponseWriter, r *http.Request, id string) {
+	if err := s.Stores.AgentPolicies.DeleteAgentPolicy(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// Skill handlers
+
+func (s Server) handleSkill(w http.ResponseWriter, r *http.Request) {
+	if s.Stores.Skills == nil {
+		writeError(w, http.StatusServiceUnavailable, "skill store is not configured")
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/skills/")
+	id = strings.TrimSpace(id)
+
+	if id == "" {
+		switch r.Method {
+		case http.MethodGet:
+			s.handleListSkills(w, r)
+		case http.MethodPost:
+			s.handleCreateSkill(w, r)
+		default:
+			writeError(w, http.StatusMethodNotAllowed, "method must be GET or POST")
+		}
+		return
+	}
+
+	if strings.Contains(id, "/") {
+		writeError(w, http.StatusNotFound, "skill not found")
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		s.handleGetSkill(w, r, id)
+	case http.MethodPatch:
+		s.handleUpdateSkill(w, r, id)
+	case http.MethodDelete:
+		s.handleDeleteSkill(w, r, id)
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "method must be GET, PATCH, or DELETE")
+	}
+}
+
+func (s Server) handleGetSkill(w http.ResponseWriter, r *http.Request, id string) {
+	rec, err := s.Stores.Skills.GetSkill(r.Context(), id)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "skill not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, SkillResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, SkillType: rec.SkillType, Entrypoint: rec.Entrypoint,
+		Config: rec.Config,
+	})
+}
+
+func (s Server) handleListSkills(w http.ResponseWriter, r *http.Request) {
+	page, limit := paginationFromQuery(r)
+	tenantID := r.URL.Query().Get("tenantId")
+	workspaceID := r.URL.Query().Get("workspaceId")
+
+	var records []SkillRecord
+	var total int
+	var err error
+
+	if tenantID != "" {
+		records, total, err = s.Stores.Skills.ListSkillsByTenant(r.Context(), tenantID, page, limit)
+	} else if workspaceID != "" {
+		records, total, err = s.Stores.Skills.ListSkillsByWorkspace(r.Context(), workspaceID, page, limit)
+	} else {
+		records, total, err = s.Stores.Skills.ListSkills(r.Context(), page, limit)
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	resp := make([]SkillResponse, len(records))
+	for i, rec := range records {
+		resp[i] = SkillResponse{
+			ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+			Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+			Status: rec.Status, SkillType: rec.SkillType, Entrypoint: rec.Entrypoint,
+			Config: rec.Config,
+		}
+	}
+	writeJSON(w, http.StatusOK, PaginatedSkillsResponse{Skills: resp, Page: page, Limit: limit, Total: total})
+}
+
+func (s Server) handleCreateSkill(w http.ResponseWriter, r *http.Request) {
+	var req CreateSkillRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.ID == "" || req.TenantID == "" || req.WorkspaceID == "" || req.Slug == "" || req.DisplayName == "" {
+		writeError(w, http.StatusBadRequest, "id, tenantId, workspaceId, slug, and displayName are required")
+		return
+	}
+	rec := SkillRecord{
+		ID: req.ID, TenantID: req.TenantID, WorkspaceID: req.WorkspaceID,
+		Slug: req.Slug, DisplayName: req.DisplayName, Description: req.Description,
+		Status: req.Status, SkillType: req.SkillType, Entrypoint: req.Entrypoint,
+		Config: req.Config,
+	}
+	if rec.Status == "" {
+		rec.Status = "active"
+	}
+	if err := s.Stores.Skills.CreateSkill(r.Context(), rec); err != nil {
+		if err == ErrConflict {
+			writeError(w, http.StatusConflict, "skill already exists")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, SkillResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, SkillType: rec.SkillType, Entrypoint: rec.Entrypoint,
+		Config: rec.Config,
+	})
+}
+
+func (s Server) handleUpdateSkill(w http.ResponseWriter, r *http.Request, id string) {
+	var req UpdateSkillRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	fields := map[string]string{}
+	if req.DisplayName != nil {
+		fields["display_name"] = *req.DisplayName
+	}
+	if req.Description != nil {
+		fields["description"] = *req.Description
+	}
+	if req.Status != nil {
+		fields["status"] = *req.Status
+	}
+	if req.SkillType != nil {
+		fields["skill_type"] = *req.SkillType
+	}
+	if req.Entrypoint != nil {
+		fields["entrypoint"] = *req.Entrypoint
+	}
+	if len(fields) == 0 {
+		writeError(w, http.StatusBadRequest, "no fields to update")
+		return
+	}
+	rec, err := s.Stores.Skills.UpdateSkill(r.Context(), id, fields)
+	if err != nil {
+		if err == ErrNotFound {
+			writeError(w, http.StatusNotFound, "skill not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, SkillResponse{
+		ID: rec.ID, TenantID: rec.TenantID, WorkspaceID: rec.WorkspaceID,
+		Slug: rec.Slug, DisplayName: rec.DisplayName, Description: rec.Description,
+		Status: rec.Status, SkillType: rec.SkillType, Entrypoint: rec.Entrypoint,
+		Config: rec.Config,
+	})
+}
+
+func (s Server) handleDeleteSkill(w http.ResponseWriter, r *http.Request, id string) {
+	if err := s.Stores.Skills.DeleteSkill(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func decodeJSON(r *http.Request, v any) error {
