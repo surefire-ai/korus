@@ -55,8 +55,8 @@ type AgentRecord struct {
 	ModelProvider  string
 	ModelName      string
 	LatestRevision string
-	CompileStatus  string         // "", "ok", "error"
-	CompileErrors  []string       // non-nil when CompileStatus == "error"
+	CompileStatus  string          // "", "ok", "error"
+	CompileErrors  []string        // non-nil when CompileStatus == "error"
 	Revisions      []RevisionEntry // revision history
 	Spec           *AgentSpecData
 }
