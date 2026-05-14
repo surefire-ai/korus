@@ -664,6 +664,16 @@ func (s Server) handleAgent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if strings.Contains(agentID, "/") {
+		// Sub-routes: /api/v1/agents/{id}/compile
+		if strings.HasSuffix(agentID, "/compile") {
+			agentID = strings.TrimSuffix(agentID, "/compile")
+			if r.Method == http.MethodPost {
+				s.handleCompileAgent(w, r, agentID)
+				return
+			}
+			writeError(w, http.StatusMethodNotAllowed, "method must be POST")
+			return
+		}
 		writeError(w, http.StatusNotFound, "agent not found")
 		return
 	}

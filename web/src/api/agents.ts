@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Agent, PaginatedAgentsResponse } from "@/types/api";
+import type { Agent, PaginatedAgentsResponse, CompileResult } from "@/types/api";
 import { api } from "./client";
 
 export function useAgents(page: number, limit: number, tenantId?: string, workspaceId?: string) {
@@ -29,5 +29,11 @@ export function useUpdateAgent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agents"] });
     },
+  });
+}
+
+export function useCompileAgent() {
+  return useMutation({
+    mutationFn: (id: string) => api.post<CompileResult>(`/agents/${id}/compile`, {}),
   });
 }

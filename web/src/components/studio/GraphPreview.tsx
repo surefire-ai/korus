@@ -1,9 +1,14 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { AgentSpecData } from "@/types/api";
+import { Play, CheckCircle2, XCircle, ChevronDown, ChevronUp } from "lucide-react";
+import type { AgentSpecData, CompileResult } from "@/types/api";
+import { useCompileAgent } from "@/api/agents";
 import { Card } from "@/components/shared/Card";
+import { Button } from "@/components/shared/Button";
 
 interface GraphPreviewProps {
   spec: AgentSpecData;
+  agentId?: string;
 }
 
 interface NodePosition {
@@ -152,23 +157,53 @@ const NODE_COLORS: Record<string, string> = {
   execute: "#10b981",
 };
 
-export function GraphPreview({ spec }: GraphPreviewProps) {
+export function GraphPreview({ spec, agentId }: GraphPreviewProps) {
   const { t } = useTranslation();
   const width = 700;
   const height = 300;
+  const compileMutation = useCompileAgent();
+  const [compileResult, setCompileResult] = useState<CompileResult | null>(null);
+  const [showArtifact, setShowArtifact] = useState(false);
 
   const patternType = spec.pattern?.type ?? "";
   const graphDef = patternGraphs[patternType];
 
+  const handleCompile = () => {
+    if (!agentId) return;
+    compileMutation.mutate(agentId, {
+      onSuccess: (result) => setCompileResult(result),
+    });
+  };
+
   // For workflow, use the spec.graph directly
   if (patternType === "workflow" && spec.graph?.nodes && spec.graph.nodes.length > 0) {
-    return <WorkflowGraphPreview graph={spec.graph} width={width} height={height} />;
+    return (
+      <div className="space-y-4">
+        <CompileSection
+          agentId={agentId}
+          compileResult={compileResult}
+          compileMutation={compileMutation}
+          onCompile={handleCompile}
+          showArtifact={showArtifact}
+          onToggleArtifact={() => setShowArtifact(!showArtifact)}
+        />
+        <WorkflowGraphPreview graph={spec.graph} width={width} height={height} />
+      </div>
+    );
   }
 
   if (!graphDef) {
     return (
-      <div>
-        <h3 className="mb-4 text-lg font-semibold text-zinc-950">{t("studio.preview.title")}</h3>
+      <div className="space-y-4">
+        <CompileSection
+          agentId={agentId}
+          compileResult={compileResult}
+          compileMutation={compileMutation}
+          onCompile={handleCompile}
+          showArtifact={showArtifact}
+          onToggleArtifact={() => setShowArtifact(!showArtifact)}
+        />
+        <h3 className="text-lg font-semibold text-zinc-950">{t("studio.preview.title")}</h3>
         <Card className="p-8">
           <p className="text-center text-sm text-zinc-400">{t("studio.preview.noGraph")}</p>
         </Card>
@@ -179,8 +214,17 @@ export function GraphPreview({ spec }: GraphPreviewProps) {
   const positions = getNodePositions(graphDef.nodes, width);
 
   return (
-    <div>
-      <h3 className="mb-4 text-lg font-semibold text-zinc-950">{t("studio.preview.title")}</h3>
+    <div className="space-y-4">
+      <CompileSection
+        agentId={agentId}
+        compileResult={compileResult}
+        compileMutation={compileMutation}
+        onCompile={handleCompile}
+        showArtifact={showArtifact}
+        onToggleArtifact={() => setShowArtifact(!showArtifact)}
+      />
+
+      <h3 className="text-lg font-semibold text-zinc-950">{t("studio.preview.title")}</h3>
       <Card className="overflow-hidden">
         <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
           <defs>
@@ -260,6 +304,95 @@ export function GraphPreview({ spec }: GraphPreviewProps) {
           })}
         </svg>
       </Card>
+    </div>
+  );
+}
+
+function CompileSection({
+  agentId,
+  compileResult,
+  compileMutation,
+  onCompile,
+  showArtifact,
+  onToggleArtifact,
+}: {
+  agentId?: string;
+  compileResult: CompileResult | null;
+  compileMutation: ReturnType<typeof useCompileAgent>;
+  onCompile: () => void;
+  showArtifact: boolean;
+  onToggleArtifact: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        <h3 className="text-lg font-semibold text-zinc-950">{t("studio.compile.title", "Compile")}</h3>
+        <Button
+          variant="secondary"
+          onClick={onCompile}
+          disabled={!agentId || compileMutation.isPending}
+          className="gap-1.5"
+        >
+          <Play className="h-3.5 w-3.5" />
+          {compileMutation.isPending
+            ? t("studio.compile.compiling", "Compiling...")
+            : t("studio.compile.run", "Run Compile")}
+        </Button>
+      </div>
+
+      {compileResult && (
+        <Card className="p-4">
+          {compileResult.ok ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-emerald-700">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="text-sm font-semibold">{t("studio.compile.success", "Compilation successful")}</span>
+                {compileResult.revision && (
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-mono text-emerald-600">
+                    {compileResult.revision.slice(0, 12)}
+                  </span>
+                )}
+              </div>
+
+              {compileResult.artifact && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={onToggleArtifact}
+                    className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
+                  >
+                    {showArtifact ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                    {t("studio.compile.showArtifact", "Compiled Artifact")}
+                  </button>
+                  {showArtifact && (
+                    <pre className="mt-2 max-h-64 overflow-auto rounded-lg bg-zinc-50 p-3 text-[11px] text-zinc-700 font-mono">
+                      {JSON.stringify(compileResult.artifact, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-red-700">
+                <XCircle className="h-5 w-5" />
+                <span className="text-sm font-semibold">
+                  {t("studio.compile.failed", "Compilation failed")}
+                </span>
+              </div>
+              <ul className="space-y-1">
+                {compileResult.errors?.map((err, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-red-600">
+                    <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-red-400" />
+                    {err}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Card>
+      )}
     </div>
   );
 }

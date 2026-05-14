@@ -139,6 +139,13 @@ export interface WorkflowBindings {
   agentNames: string[];
 }
 
+export interface CompileResult {
+  ok: boolean;
+  errors?: string[];
+  revision?: string;
+  artifact?: Record<string, unknown>;
+}
+
 export interface AgentSpecData {
   runtime?: RuntimeConfig;
   models?: Record<string, ModelConfig>;

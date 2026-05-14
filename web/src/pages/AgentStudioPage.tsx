@@ -383,7 +383,7 @@ export function AgentStudioPage() {
           </div>
         )}
 
-        {activeTab === "preview" && <div key="preview" className="tab-content-enter"><GraphPreview spec={spec} /></div>}
+        {activeTab === "preview" && <div key="preview" className="tab-content-enter"><GraphPreview spec={spec} agentId={agentId} /></div>}
       </div>
 
       <ToastContainer toasts={toast.toasts} onDismiss={toast.dismissToast} />
