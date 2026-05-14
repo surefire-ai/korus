@@ -263,6 +263,31 @@ func (s *devAgentStore) UpdateAgent(_ context.Context, id string, fields map[str
 	return &rec, nil
 }
 
+func (s *devAgentStore) UpdateAgentPublish(_ context.Context, id string, fields map[string]string, revision RevisionEntry) (*AgentRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["status"]; ok {
+		rec.Status = v
+	}
+	if v, ok := fields["compile_status"]; ok {
+		rec.CompileStatus = v
+	}
+	if v, ok := fields["latest_revision"]; ok {
+		rec.LatestRevision = v
+	}
+	// Clear compile errors on success, set on error.
+	if rec.CompileStatus == "error" {
+		rec.CompileErrors = []string{}
+	} else {
+		rec.CompileErrors = nil
+	}
+	rec.Revisions = append(rec.Revisions, revision)
+	s.records[id] = rec
+	return &rec, nil
+}
+
 func (s *devAgentStore) DeleteAgent(_ context.Context, id string) error {
 	delete(s.records, id)
 	for i, oid := range s.orderedIDs {

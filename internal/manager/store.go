@@ -34,6 +34,13 @@ type TenantRecord struct {
 	DefaultRegion  string
 }
 
+// RevisionEntry records a single compile/publish event.
+type RevisionEntry struct {
+	Revision  string `json:"revision"`
+	CreatedAt string `json:"createdAt"`
+	Status    string `json:"status"` // "ok" or "error"
+}
+
 type AgentRecord struct {
 	ID             string
 	TenantID       string
@@ -48,6 +55,9 @@ type AgentRecord struct {
 	ModelProvider  string
 	ModelName      string
 	LatestRevision string
+	CompileStatus  string         // "", "ok", "error"
+	CompileErrors  []string       // non-nil when CompileStatus == "error"
+	Revisions      []RevisionEntry // revision history
 	Spec           *AgentSpecData
 }
 
@@ -193,7 +203,7 @@ type GraphEdge struct {
 }
 
 // agentColumns is the SELECT column list for agents including spec.
-const agentColumns = `id, tenant_id, workspace_id, slug, display_name, description, status, pattern, runtime_engine, runner_class, model_provider, model_name, latest_revision, spec`
+const agentColumns = `id, tenant_id, workspace_id, slug, display_name, description, status, pattern, runtime_engine, runner_class, model_provider, model_name, latest_revision, compile_status, spec`
 
 func scanAgent(scanner interface{ Scan(...any) error }) (AgentRecord, error) {
 	var rec AgentRecord
@@ -202,7 +212,7 @@ func scanAgent(scanner interface{ Scan(...any) error }) (AgentRecord, error) {
 		&rec.ID, &rec.TenantID, &rec.WorkspaceID, &rec.Slug,
 		&rec.DisplayName, &rec.Description, &rec.Status, &rec.Pattern,
 		&rec.RuntimeEngine, &rec.RunnerClass, &rec.ModelProvider,
-		&rec.ModelName, &rec.LatestRevision, &specRaw,
+		&rec.ModelName, &rec.LatestRevision, &rec.CompileStatus, &specRaw,
 	)
 	if err != nil {
 		return rec, err
@@ -291,6 +301,7 @@ type AgentStore interface {
 	ListAgentsByWorkspace(ctx context.Context, workspaceID string, page, limit int) ([]AgentRecord, int, error)
 	CreateAgent(ctx context.Context, agent AgentRecord) error
 	UpdateAgent(ctx context.Context, id string, fields map[string]string, spec *AgentSpecData) (*AgentRecord, error)
+	UpdateAgentPublish(ctx context.Context, id string, fields map[string]string, revision RevisionEntry) (*AgentRecord, error)
 	DeleteAgent(ctx context.Context, id string) error
 }
 
@@ -758,6 +769,7 @@ var agentUpdatableColumns = map[string]string{
 	"model_provider":  "model_provider",
 	"model_name":      "model_name",
 	"latest_revision": "latest_revision",
+	"compile_status":  "compile_status",
 }
 
 func (s SQLAgentStore) CreateAgent(ctx context.Context, agent AgentRecord) error {
@@ -772,12 +784,12 @@ func (s SQLAgentStore) CreateAgent(ctx context.Context, agent AgentRecord) error
 			return fmt.Errorf("marshal agent spec: %w", err)
 		}
 	}
-	_, err := s.DB.ExecContext(ctx, `INSERT INTO agents (id, tenant_id, workspace_id, slug, display_name, description, status, pattern, runtime_engine, runner_class, model_provider, model_name, latest_revision, spec)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+	_, err := s.DB.ExecContext(ctx, `INSERT INTO agents (id, tenant_id, workspace_id, slug, display_name, description, status, pattern, runtime_engine, runner_class, model_provider, model_name, latest_revision, compile_status, spec)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
 		agent.ID, agent.TenantID, agent.WorkspaceID, agent.Slug,
 		agent.DisplayName, agent.Description, agent.Status, agent.Pattern,
 		agent.RuntimeEngine, agent.RunnerClass, agent.ModelProvider,
-		agent.ModelName, agent.LatestRevision, specJSON,
+		agent.ModelName, agent.LatestRevision, agent.CompileStatus, specJSON,
 	)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -832,6 +844,20 @@ func (s SQLAgentStore) UpdateAgent(ctx context.Context, id string, fields map[st
 		return nil, fmt.Errorf("update manager agent %q: %w", id, err)
 	}
 	return &rec, nil
+}
+
+func (s SQLAgentStore) UpdateAgentPublish(ctx context.Context, id string, fields map[string]string, revision RevisionEntry) (*AgentRecord, error) {
+	if s.DB == nil {
+		return nil, fmt.Errorf("manager database is required")
+	}
+	// Delegate field updates to UpdateAgent (no spec change).
+	updated, err := s.UpdateAgent(ctx, id, fields, nil)
+	if err != nil {
+		return nil, err
+	}
+	// Revisions are not persisted in SQL for now — append in-memory only.
+	updated.Revisions = append(updated.Revisions, revision)
+	return updated, nil
 }
 
 func (s SQLAgentStore) DeleteAgent(ctx context.Context, id string) error {

@@ -79,6 +79,43 @@ export function AgentDetailCard({ agent }: AgentDetailCardProps) {
           <dt className="text-xs font-semibold uppercase text-zinc-500">{t("agent.fields.latestRevision")}</dt>
           <dd className="mt-2 break-all text-sm font-mono text-zinc-950">{agent.latestRevision ?? nd}</dd>
         </div>
+
+        {/* Compile Status */}
+        {agent.compileStatus && (
+          <>
+            <dt className="detail-section-label sm:col-span-2">{t("detailSection.compile")}</dt>
+            <div className="surface-muted rounded-lg p-4">
+              <dt className="text-xs font-semibold uppercase text-zinc-500">{t("agent.fields.compileStatus")}</dt>
+              <dd className="mt-2">
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                    agent.compileStatus === "ok"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {agent.compileStatus}
+                </span>
+              </dd>
+            </div>
+            <div className="surface-muted rounded-lg p-4">
+              <dt className="text-xs font-semibold uppercase text-zinc-500">{t("agent.fields.latestRevision")}</dt>
+              <dd className="mt-2 break-all text-sm font-mono text-zinc-950">{agent.latestRevision ?? nd}</dd>
+            </div>
+            {agent.compileErrors && agent.compileErrors.length > 0 && (
+              <div className="surface-muted rounded-lg p-4 sm:col-span-2">
+                <dt className="text-xs font-semibold uppercase text-zinc-500">{t("agent.fields.compileErrors")}</dt>
+                <dd className="mt-2">
+                  <ul className="list-inside list-disc space-y-1 text-sm text-red-600">
+                    {agent.compileErrors.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            )}
+          </>
+        )}
       </dl>
     </Card>
   );

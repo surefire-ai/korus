@@ -266,6 +266,30 @@ func (s *fakeAgentStore) UpdateAgent(_ context.Context, id string, fields map[st
 	return &rec, nil
 }
 
+func (s *fakeAgentStore) UpdateAgentPublish(_ context.Context, id string, fields map[string]string, revision RevisionEntry) (*AgentRecord, error) {
+	rec, ok := s.records[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if v, ok := fields["status"]; ok {
+		rec.Status = v
+	}
+	if v, ok := fields["compile_status"]; ok {
+		rec.CompileStatus = v
+	}
+	if v, ok := fields["latest_revision"]; ok {
+		rec.LatestRevision = v
+	}
+	if rec.CompileStatus == "error" {
+		rec.CompileErrors = []string{}
+	} else {
+		rec.CompileErrors = nil
+	}
+	rec.Revisions = append(rec.Revisions, revision)
+	s.records[id] = rec
+	return &rec, nil
+}
+
 func (s *fakeAgentStore) DeleteAgent(_ context.Context, id string) error {
 	delete(s.records, id)
 	for i, oid := range s.orderedIDs {

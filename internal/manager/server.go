@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/surefire-ai/korus/internal/compiler"
 )
 
 type Server struct {
@@ -53,20 +55,23 @@ type TenantResponse struct {
 }
 
 type AgentResponse struct {
-	ID             string         `json:"id"`
-	TenantID       string         `json:"tenantId"`
-	WorkspaceID    string         `json:"workspaceId"`
-	Slug           string         `json:"slug"`
-	DisplayName    string         `json:"displayName"`
-	Description    string         `json:"description,omitempty"`
-	Status         string         `json:"status"`
-	Pattern        string         `json:"pattern"`
-	RuntimeEngine  string         `json:"runtimeEngine"`
-	RunnerClass    string         `json:"runnerClass"`
-	ModelProvider  string         `json:"modelProvider,omitempty"`
-	ModelName      string         `json:"modelName,omitempty"`
-	LatestRevision string         `json:"latestRevision,omitempty"`
-	Spec           *AgentSpecData `json:"spec,omitempty"`
+	ID             string          `json:"id"`
+	TenantID       string          `json:"tenantId"`
+	WorkspaceID    string          `json:"workspaceId"`
+	Slug           string          `json:"slug"`
+	DisplayName    string          `json:"displayName"`
+	Description    string          `json:"description,omitempty"`
+	Status         string          `json:"status"`
+	Pattern        string          `json:"pattern"`
+	RuntimeEngine  string          `json:"runtimeEngine"`
+	RunnerClass    string          `json:"runnerClass"`
+	ModelProvider  string          `json:"modelProvider,omitempty"`
+	ModelName      string          `json:"modelName,omitempty"`
+	LatestRevision string          `json:"latestRevision,omitempty"`
+	CompileStatus  string          `json:"compileStatus,omitempty"`
+	CompileErrors  []string        `json:"compileErrors,omitempty"`
+	Revisions      []RevisionEntry `json:"revisions,omitempty"`
+	Spec           *AgentSpecData  `json:"spec,omitempty"`
 }
 
 type EvaluationResponse struct {
@@ -664,11 +669,20 @@ func (s Server) handleAgent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if strings.Contains(agentID, "/") {
-		// Sub-routes: /api/v1/agents/{id}/compile
+		// Sub-routes: /api/v1/agents/{id}/compile, /api/v1/agents/{id}/publish
 		if strings.HasSuffix(agentID, "/compile") {
 			agentID = strings.TrimSuffix(agentID, "/compile")
 			if r.Method == http.MethodPost {
 				s.handleCompileAgent(w, r, agentID)
+				return
+			}
+			writeError(w, http.StatusMethodNotAllowed, "method must be POST")
+			return
+		}
+		if strings.HasSuffix(agentID, "/publish") {
+			agentID = strings.TrimSuffix(agentID, "/publish")
+			if r.Method == http.MethodPost {
+				s.handlePublishAgent(w, r, agentID)
 				return
 			}
 			writeError(w, http.StatusMethodNotAllowed, "method must be POST")
@@ -1060,6 +1074,9 @@ func agentResponseFromRecord(rec AgentRecord) AgentResponse {
 		ModelProvider:  rec.ModelProvider,
 		ModelName:      rec.ModelName,
 		LatestRevision: rec.LatestRevision,
+		CompileStatus:  rec.CompileStatus,
+		CompileErrors:  rec.CompileErrors,
+		Revisions:      rec.Revisions,
 		Spec:           rec.Spec,
 	}
 }
@@ -1312,6 +1329,83 @@ func (s Server) handleUpdateAgent(w http.ResponseWriter, r *http.Request, agentI
 		log.Printf("syncer: failed to sync agent %s: %v", updated.ID, err)
 	}
 	writeJSON(w, http.StatusOK, agentResponseFromRecord(*updated))
+}
+
+func (s Server) handlePublishAgent(w http.ResponseWriter, r *http.Request, agentID string) {
+	if s.Stores.Agents == nil {
+		writeError(w, http.StatusServiceUnavailable, "agent store is not configured")
+		return
+	}
+
+	agent, err := s.Stores.Agents.GetAgent(r.Context(), agentID)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "agent not found")
+		return
+	}
+
+	now := time.Now().UTC().Format(time.RFC3339)
+
+	if agent.Spec == nil {
+		// No spec — mark as published with no revision.
+		fields := map[string]string{
+			"status":         "published",
+			"compile_status": "ok",
+		}
+		entry := RevisionEntry{Revision: "", CreatedAt: now, Status: "ok"}
+		updated, err := s.Stores.Agents.UpdateAgentPublish(r.Context(), agentID, fields, entry)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to publish agent")
+			return
+		}
+		writeJSON(w, http.StatusOK, CompileResult{OK: true})
+		_ = s.syncer().SyncAgent(r.Context(), *updated)
+		return
+	}
+
+	// Compile the agent.
+	k8sAgent := agentRecordToK8s(*agent)
+	refs := buildReferenceIndex(agent.Spec)
+	result, compileErr := compiler.CompileAgent(k8sAgent, refs)
+
+	if compileErr != nil {
+		errs := splitErrors(compileErr.Error())
+		fields := map[string]string{
+			"compile_status": "error",
+		}
+		entry := RevisionEntry{Revision: "", CreatedAt: now, Status: "error"}
+		updated, err := s.Stores.Agents.UpdateAgentPublish(r.Context(), agentID, fields, entry)
+		if err != nil {
+			log.Printf("publish: failed to update agent %s: %v", agentID, err)
+		} else if err := s.syncer().SyncAgent(r.Context(), *updated); err != nil {
+			log.Printf("syncer: failed to sync agent %s: %v", agentID, err)
+		}
+		writeJSON(w, http.StatusOK, CompileResult{OK: false, Errors: errs})
+		return
+	}
+
+	// Success — set latest revision and mark published.
+	fields := map[string]string{
+		"status":          "published",
+		"compile_status":  "ok",
+		"latest_revision": result.Revision,
+	}
+	entry := RevisionEntry{Revision: result.Revision, CreatedAt: now, Status: "ok"}
+	updated, err := s.Stores.Agents.UpdateAgentPublish(r.Context(), agentID, fields, entry)
+	if err != nil {
+		log.Printf("publish: failed to update agent %s: %v", agentID, err)
+	} else if err := s.syncer().SyncAgent(r.Context(), *updated); err != nil {
+		log.Printf("syncer: failed to sync agent %s: %v", agentID, err)
+	}
+
+	var artifact any
+	if raw, err := json.Marshal(result.Artifact); err == nil {
+		_ = json.Unmarshal(raw, &artifact)
+	}
+	writeJSON(w, http.StatusOK, CompileResult{
+		OK:       true,
+		Revision: result.Revision,
+		Artifact: artifact,
+	})
 }
 
 func (s Server) handleDeleteAgent(w http.ResponseWriter, r *http.Request, agentID string) {

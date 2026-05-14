@@ -146,6 +146,12 @@ export interface CompileResult {
   artifact?: Record<string, unknown>;
 }
 
+export interface RevisionEntry {
+  revision: string;
+  createdAt: string;
+  status: string;
+}
+
 export interface AgentSpecData {
   runtime?: RuntimeConfig;
   models?: Record<string, ModelConfig>;
@@ -176,6 +182,9 @@ export interface Agent {
   modelProvider?: string;
   modelName?: string;
   latestRevision?: string;
+  compileStatus?: string;
+  compileErrors?: string[];
+  revisions?: RevisionEntry[];
   spec?: AgentSpecData;
 }
 

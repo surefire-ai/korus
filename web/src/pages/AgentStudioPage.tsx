@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { useAgent, useUpdateAgent } from "@/api/agents";
+import { useAgent, useUpdateAgent, usePublishAgent } from "@/api/agents";
 import type {
   AgentSpecData,
   PatternConfig,
@@ -12,6 +12,7 @@ import type {
   SubAgentBinding,
   GraphConfig,
   WorkflowBindings,
+  CompileResult,
 } from "@/types/api";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/shared/Button";
@@ -46,10 +47,12 @@ export function AgentStudioPage() {
   const navigate = useNavigate();
   const { data: agent, isLoading, isError, error, refetch } = useAgent(agentId);
   const saveMutation = useUpdateAgent();
+  const publishMutation = usePublishAgent();
 
   const [activeTab, setActiveTab] = useState<TabKey>("pattern");
   const [spec, setSpec] = useState<AgentSpecData>(defaultSpec());
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [publishResult, setPublishResult] = useState<CompileResult | null>(null);
   const toast = useToast();
 
   // Ref for workflow validation function
@@ -125,6 +128,51 @@ export function AgentStudioPage() {
       }
     );
   }, [agentId, spec, saveMutation, tenantId, navigate]);
+
+  const handleSaveAndPublish = useCallback(() => {
+    if (!agentId) return;
+
+    // Run workflow validation if in workflow mode
+    if (spec.pattern?.type === "workflow" && workflowValidateRef.current) {
+      const errors = workflowValidateRef.current();
+      if (errors.length > 0) {
+        setSaveStatus("error");
+        return;
+      }
+    }
+
+    setSaveStatus("saving");
+    setPublishResult(null);
+    const patchData = { pattern: spec.pattern?.type, spec };
+
+    saveMutation.mutate(
+      { id: agentId, ...patchData },
+      {
+        onSuccess: () => {
+          publishMutation.mutate(agentId, {
+            onSuccess: (result) => {
+              setPublishResult(result);
+              if (result.ok) {
+                setSaveStatus("saved");
+                toast.success(t("studio.published"));
+              } else {
+                setSaveStatus("error");
+                toast.error(t("studio.publishError"));
+              }
+            },
+            onError: () => {
+              setSaveStatus("error");
+              toast.error(t("studio.publishError"));
+            },
+          });
+        },
+        onError: () => {
+          setSaveStatus("error");
+          toast.error(t("studio.saveError"));
+        },
+      }
+    );
+  }, [agentId, spec, saveMutation, publishMutation, tenantId, toast, t]);
 
   const handleGraphChange = useCallback((graph: GraphConfig) => {
     setSpec((prev) => ({ ...prev, graph }));
@@ -242,22 +290,50 @@ export function AgentStudioPage() {
           </Button>
         </div>
         <div className="flex items-center gap-2">
-          {saveStatus === "saved" && (
+          {saveStatus === "saved" && !publishResult && (
             <span className="save-pulse bg-emerald-50 text-emerald-700 rounded-full px-2 py-0.5 text-xs">
               {t("studio.saved")}
+            </span>
+          )}
+          {publishResult?.ok && (
+            <span className="save-pulse bg-emerald-50 text-emerald-700 rounded-full px-2 py-0.5 text-xs">
+              {t("studio.published")} {publishResult.revision && `· ${publishResult.revision.slice(0, 8)}`}
+            </span>
+          )}
+          {publishResult && !publishResult.ok && publishResult.errors && (
+            <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700">
+              {t("studio.compileError")} · {publishResult.errors.length}
             </span>
           )}
           <Button variant="secondary" onClick={() => navigate(`/tenants/${tenantId}/agents/${agentId}`)}>
             {t("studio.cancel")}
           </Button>
-          <Button onClick={handleSave} disabled={saveStatus === "saving" || saveStatus === "saved"}>
+          <Button variant="secondary" onClick={handleSave} disabled={saveStatus === "saving" || saveStatus === "saved"}>
             {saveStatus === "saving" && t("studio.saving")}
-            {saveStatus === "saved" && t("studio.saved")}
-            {saveStatus === "error" && t("studio.saveError")}
+            {saveStatus === "saved" && publishResult ? t("studio.saved") : t("studio.saved")}
+            {saveStatus === "error" && !publishResult && t("studio.saveError")}
             {saveStatus === "idle" && t("studio.save")}
+          </Button>
+          <Button onClick={handleSaveAndPublish} disabled={saveStatus === "saving" || (saveStatus === "saved" && publishResult?.ok)}>
+            {saveStatus === "saving" && t("studio.publishing")}
+            {saveStatus === "saved" && publishResult?.ok && t("studio.published")}
+            {saveStatus === "error" && publishResult && !publishResult.ok && t("studio.publishError")}
+            {saveStatus === "idle" && t("studio.saveAndPublish")}
           </Button>
         </div>
       </div>
+
+      {/* Compile errors */}
+      {publishResult && !publishResult.ok && publishResult.errors && publishResult.errors.length > 0 && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="mb-2 text-sm font-medium text-red-800">{t("studio.compileErrors")}</p>
+          <ul className="list-inside list-disc space-y-1 text-sm text-red-700">
+            {publishResult.errors.map((err, i) => (
+              <li key={i}>{err}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Tab Content */}
       <div className="rounded-lg border border-zinc-200 bg-white p-6">

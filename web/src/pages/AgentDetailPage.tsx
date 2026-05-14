@@ -5,6 +5,7 @@ import { useAgent } from "@/api/agents";
 import { useRuns } from "@/api/runs";
 import { useEvaluations } from "@/api/evaluations";
 import { AgentDetailCard } from "@/components/agents/AgentDetailCard";
+import { RevisionHistory } from "@/components/agents/RevisionHistory";
 import { RunTable } from "@/components/runs/RunTable";
 import { EvaluationTable } from "@/components/evaluations/EvaluationTable";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -59,6 +60,11 @@ export function AgentDetailPage() {
       />
 
       <AgentDetailCard agent={agent} />
+
+      {/* Revision History */}
+      {agent.revisions && agent.revisions.length > 0 && (
+        <RevisionHistory revisions={agent.revisions} />
+      )}
 
       {/* Linked Runs */}
       <div className="mt-8">

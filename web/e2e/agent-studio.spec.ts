@@ -51,7 +51,7 @@ test.describe("Agent Studio", () => {
       await page.getByRole("button", { name: /End.*Workflow exit/ }).click();
       await expect(page.getByText(/2 Nodes · 0 Edges/)).toBeVisible();
 
-      await page.getByRole("button", { name: "Save" }).click();
+      await page.getByRole("button", { name: "Save Draft" }).click();
       await expect(page).toHaveURL(new RegExp(`/tenants/t_enterprise/agents/${agentId}$`));
 
       await page.getByRole("button", { name: "Open Studio" }).click();

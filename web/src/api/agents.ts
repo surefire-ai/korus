@@ -37,3 +37,13 @@ export function useCompileAgent() {
     mutationFn: (id: string) => api.post<CompileResult>(`/agents/${id}/compile`, {}),
   });
 }
+
+export function usePublishAgent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post<CompileResult>(`/agents/${id}/publish`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+    },
+  });
+}
