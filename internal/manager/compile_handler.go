@@ -12,7 +12,7 @@ import (
 
 // CompileResult is the JSON response for the compile endpoint.
 type CompileResult struct {
-	OK       bool   `json:"ok"`
+	OK       bool     `json:"ok"`
 	Errors   []string `json:"errors,omitempty"`
 	Revision string   `json:"revision,omitempty"`
 	Artifact any      `json:"artifact,omitempty"`
