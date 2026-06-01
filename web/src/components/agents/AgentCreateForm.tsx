@@ -8,12 +8,18 @@ import { Select } from "@/components/shared/Select";
 import { Field } from "@/components/shared/Field";
 import { Card } from "@/components/shared/Card";
 
+export interface WorkspaceOption {
+  value: string;
+  label: string;
+}
+
 interface AgentCreateFormProps {
   values: CreateAgentRequest;
   onChange: (values: CreateAgentRequest) => void;
   onSubmit: () => void;
   onCancel: () => void;
   isPending: boolean;
+  workspaceOptions: WorkspaceOption[];
 }
 
 interface FormErrors {
@@ -32,6 +38,7 @@ export function AgentCreateForm({
   onSubmit,
   onCancel,
   isPending,
+  workspaceOptions,
 }: AgentCreateFormProps) {
   const { t } = useTranslation();
   const [errors, setErrors] = useState<FormErrors>({});
@@ -43,9 +50,18 @@ export function AgentCreateForm({
   ];
 
   const patternOptions = [
+    { value: "react", label: "ReAct" },
     { value: "single", label: "Single" },
     { value: "router", label: "Router" },
     { value: "graph", label: "Graph" },
+  ];
+
+  const runtimeEngineOptions = [
+    { value: "eino", label: "Eino" },
+  ];
+
+  const runnerClassOptions = [
+    { value: "adk", label: "ADK" },
   ];
 
   const set = (key: keyof CreateAgentRequest, value: string) => {
@@ -139,12 +155,12 @@ export function AgentCreateForm({
         </Field>
 
         <Field label={t("agent.fields.workspaceId")} htmlFor="workspaceId" required error={errors.workspaceId}>
-          <Input
+          <Select
             id="workspaceId"
-            placeholder="workspace-id"
+            options={workspaceOptions}
+            placeholder={workspaceOptions.length === 0 ? t("common.noOptions", "No workspaces available") : undefined}
             value={values.workspaceId}
             onChange={(e) => set("workspaceId", e.target.value)}
-            hasError={!!errors.workspaceId}
           />
         </Field>
 
@@ -171,7 +187,7 @@ export function AgentCreateForm({
             <Select
               id="pattern"
               options={patternOptions}
-              value={values.pattern ?? "single"}
+              value={values.pattern ?? "react"}
               onChange={(e) => set("pattern", e.target.value)}
             />
           </Field>
@@ -179,19 +195,19 @@ export function AgentCreateForm({
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <Field label={t("agent.fields.runtimeEngine")} htmlFor="runtimeEngine">
-            <Input
+            <Select
               id="runtimeEngine"
-              placeholder="langchain"
-              value={values.runtimeEngine ?? ""}
+              options={runtimeEngineOptions}
+              value={values.runtimeEngine ?? "eino"}
               onChange={(e) => set("runtimeEngine", e.target.value)}
             />
           </Field>
 
           <Field label={t("agent.fields.runnerClass")} htmlFor="runnerClass">
-            <Input
+            <Select
               id="runnerClass"
-              placeholder="default"
-              value={values.runnerClass ?? ""}
+              options={runnerClassOptions}
+              value={values.runnerClass ?? "adk"}
               onChange={(e) => set("runnerClass", e.target.value)}
             />
           </Field>

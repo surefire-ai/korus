@@ -2,8 +2,10 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useWorkspaces } from "@/api/workspaces";
 import { useCreateAgent } from "@/api/agents";
 import { AgentCreateForm } from "@/components/agents/AgentCreateForm";
+import type { WorkspaceOption } from "@/components/agents/AgentCreateForm";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import type { CreateAgentRequest } from "@/types/api";
@@ -14,6 +16,8 @@ export function AgentCreatePage() {
   const { tenantId } = useParams<{ tenantId: string }>();
   const navigate = useNavigate();
   const createMutation = useCreateAgent();
+  const { data: workspaceData } = useWorkspaces(1, 100, tenantId);
+  const workspaceOptions: WorkspaceOption[] = (workspaceData?.workspaces ?? []).map((ws) => ({ value: ws.id, label: ws.displayName || ws.id }));
 
   const [values, setValues] = useState<CreateAgentRequest>({
     id: "",
@@ -22,7 +26,9 @@ export function AgentCreatePage() {
     slug: "",
     displayName: "",
     status: "draft",
-    pattern: "single",
+    runtimeEngine: "eino",
+    runnerClass: "adk",
+    pattern: "react",
   });
 
   const handleChange = (newValues: CreateAgentRequest) => {
@@ -60,6 +66,7 @@ export function AgentCreatePage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(`/tenants/${tenantId}/agents`)}
         isPending={createMutation.isPending}
+        workspaceOptions={workspaceOptions}
       />
     </div>
   );
