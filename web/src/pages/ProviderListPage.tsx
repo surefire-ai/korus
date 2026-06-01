@@ -1,6 +1,6 @@
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useProviders } from "@/api/providers";
 import { ProviderTable } from "@/components/providers/ProviderTable";
@@ -9,6 +9,7 @@ import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Pagination } from "@/components/shared/Pagination";
+import { Button } from "@/components/shared/Button";
 
 const LIMIT = 10;
 
@@ -23,7 +24,15 @@ export function ProviderListPage() {
 
   return (
     <div>
-      <PageHeader title={t("provider.title")} subtitle={t("provider.subtitle")} />
+      <PageHeader
+        title={t("provider.title")}
+        subtitle={t("provider.subtitle")}
+        actions={
+          <Link to={`/tenants/${tenantId}/providers/new`}>
+            <Button>{t("provider.newButton", "New Provider")}</Button>
+          </Link>
+        }
+      />
 
       {isLoading && <LoadingSkeleton />}
 

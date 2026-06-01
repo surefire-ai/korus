@@ -15,6 +15,7 @@ import { EvaluationListPage } from "@/pages/EvaluationListPage";
 import { EvaluationDetailPage } from "@/pages/EvaluationDetailPage";
 import { ProviderListPage } from "@/pages/ProviderListPage";
 import { ProviderDetailPage } from "@/pages/ProviderDetailPage";
+import { ProviderCreatePage } from "@/pages/ProviderCreatePage";
 import { RunListPage } from "@/pages/RunListPage";
 import { RunDetailPage } from "@/pages/RunDetailPage";
 import { AuthGuard } from "@/components/auth/AuthGuard";
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: "tenants/:tenantId/runs", element: <RunListPage /> },
       { path: "tenants/:tenantId/runs/:runId", element: <RunDetailPage /> },
       { path: "tenants/:tenantId/providers", element: <ProviderListPage /> },
+      { path: "tenants/:tenantId/providers/new", element: <ProviderCreatePage /> },
       { path: "tenants/:tenantId/providers/:providerId", element: <ProviderDetailPage /> },
       { path: "tenants/:tenantId/settings", element: <ProductAreaPage area="settings" /> },
       { path: "*", element: <NotFoundPage /> },
