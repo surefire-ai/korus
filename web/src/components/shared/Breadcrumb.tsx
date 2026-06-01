@@ -1,13 +1,11 @@
 import { Link, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useTenant } from "@/api/tenants";
 import { useWorkspace } from "@/api/workspaces";
 
 export function Breadcrumb() {
   const { t } = useTranslation();
   const { tenantId, workspaceId } = useParams<{ tenantId?: string; workspaceId?: string }>();
   const { pathname } = useLocation();
-  const { data: tenant } = useTenant(tenantId);
   const { data: workspace } = useWorkspace(workspaceId);
 
   const segments = pathname.split("/").filter(Boolean);
@@ -19,27 +17,35 @@ export function Breadcrumb() {
   if (segments[0] === "tenants") {
     crumbs.push({ label: t("nav.tenants"), href: "/tenants" });
 
-    if (tenant) {
-      crumbs.push({
-        label: tenant.displayName,
-        href: `/tenants/${tenant.id}/workspaces`,
-      });
+    // Tenant context is already shown in the sidebar TenantSwitcher.
+    // On tenant-level list pages (agents, evaluations, etc.) the breadcrumb
+    // would just repeat "Tenants / TenantName" — skip it to avoid duplication.
+    if (tenantId && !workspace && !pathname.includes("/workspaces/new")) {
+      const listSuffixes = [
+        "/workspaces",
+        "/agents",
+        "/evaluations",
+        "/runs",
+        "/providers",
+        "/settings",
+      ];
+      for (const suffix of listSuffixes) {
+        if (pathname.endsWith(`/tenants/${tenantId}${suffix}`)) return null;
+      }
     }
 
     if (workspace) {
       crumbs.push({ label: workspace.displayName });
     } else if (pathname.includes("/workspaces/new")) {
       crumbs.push({ label: t("nav.newWorkspace") });
-    } else if (pathname.includes("/agents")) {
+    } else if (pathname.includes("/agents/")) {
       crumbs.push({ label: t("nav.agents") });
-    } else if (pathname.includes("/evaluations")) {
+    } else if (pathname.includes("/evaluations/")) {
       crumbs.push({ label: t("nav.evaluations") });
-    } else if (pathname.includes("/runs")) {
+    } else if (pathname.includes("/runs/")) {
       crumbs.push({ label: t("nav.runs") });
-    } else if (pathname.includes("/providers")) {
+    } else if (pathname.includes("/providers/")) {
       crumbs.push({ label: t("nav.providers") });
-    } else if (pathname.includes("/settings")) {
-      crumbs.push({ label: t("nav.settings") });
     }
   }
 
